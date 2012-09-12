@@ -18,7 +18,7 @@ namespace MurmurRunner
 
         static readonly byte[] RandomData = GenerateRandomData();
         static readonly byte[] SampleData = CreateSampleData();
-        const int FAST_ITERATION_COUNT = 1000000;
+        const int FAST_ITERATION_COUNT = 10000000;
         const int SLOW_ITERATION_COUNT = 100000;
         static readonly IndentingConsoleWriter OutputWriter = new IndentingConsoleWriter();
 
@@ -30,17 +30,17 @@ namespace MurmurRunner
             using (OutputWriter.Indent(2))
             {
                 Run(name: "Guid x 8", data: SampleData, steps: new Dictionary<string, Tuple<HashAlgorithm, int>> {
+                    { "Murmur 128 Managed", Tuple.Create(Managed, FAST_ITERATION_COUNT) },    
                     { "Murmur 128 Unmanaged", Tuple.Create(Unmanaged, FAST_ITERATION_COUNT) },
-                    { "Murmur 128 Managed", Tuple.Create(Managed, FAST_ITERATION_COUNT) },
                     { "SHA1", Tuple.Create(Sha1, SLOW_ITERATION_COUNT) },
                     { "MD5", Tuple.Create(Md5, SLOW_ITERATION_COUNT) }
                 });
 
                 Run(name: "Random", data: RandomData, steps: new Dictionary<string, Tuple<HashAlgorithm, int>> {
-                    { "Murmur 128 Unmanaged", Tuple.Create(Unmanaged, FAST_ITERATION_COUNT) },
-                    { "Murmur 128 Managed", Tuple.Create(Managed, FAST_ITERATION_COUNT) },
-                    { "SHA1", Tuple.Create(Sha1, SLOW_ITERATION_COUNT) },
-                    { "MD5", Tuple.Create(Md5, SLOW_ITERATION_COUNT) }
+                    { "Murmur 128 Managed", Tuple.Create(Managed, 2999) },    
+                    { "Murmur 128 Unmanaged", Tuple.Create(Unmanaged, 2999) },
+                    { "SHA1", Tuple.Create(Sha1, 2999) },
+                    { "MD5", Tuple.Create(Md5, 2999) }
                 });
             }
 
@@ -62,7 +62,7 @@ namespace MurmurRunner
                     var algorithm = step.Value.Item1;
                     var iterations = step.Value.Item2;
 
-                    OutputWriter.WriteLine("{0} ({1})", algorithmFriendlyName, algorithm.GetType().Name);
+                    OutputWriter.WriteLine("{1} x {0:N0}", iterations, algorithmFriendlyName);
                     Profile(algorithm, iterations, data);
                 }
             }
@@ -72,29 +72,79 @@ namespace MurmurRunner
         {
             using (OutputWriter.Indent())
             {
-                WriteProfilingResult("Runs", "{0:N0}", iterations);
-                WriteProfilingResult("Output", GetHashAsString(algorithm.ComputeHash(data)));
+                var referenceHash = algorithm.ComputeHash(data);
+                //WriteProfilingResult("Runs", "{0:N0}", iterations);
+                WriteProfilingResult("Output", GetHashAsString(referenceHash));
 
                 // warmup
                 for (int i = 0; i < 1000; i++)
                     algorithm.ComputeHash(data);
 
                 // profile
-                var timer = Stopwatch.StartNew();
-                for (int i = 0; i < iterations; i++)
-                {
-                    var hash = algorithm.ComputeHash(data);
-                    bool a = hash != null;
-                }
+                var timer = Execute(algorithm, iterations, data, referenceHash);
 
-                timer.Stop();
-
+                // results
                 WriteProfilingResult("Duration", "{0:N0} ms ({1:N0} ticks)", timer.ElapsedMilliseconds, timer.ElapsedTicks);
                 WriteProfilingResult("Ops/Tick", "{0:N3}", Divide(iterations, timer.ElapsedTicks));
                 WriteProfilingResult("Ops/ms", "{0:N3}", Divide(iterations, timer.ElapsedMilliseconds));
+
+                // calculate throughput
+                WriteThroughput(data.Length, iterations, timer);
             }
 
             OutputWriter.NewLines();
+        }
+
+        private static void WriteThroughput(long length, long iterations, Stopwatch timer)
+        {
+            double totalBytes = length * iterations;
+            double totalSeconds = timer.ElapsedMilliseconds / 1000.0;
+
+            double bytesPerSecond = totalBytes / totalSeconds;
+            double mbitsPerSecond = (bytesPerSecond / (1024.0 * 1024.0));
+
+            WriteProfilingResult("MiB/s", "{0:N3}", mbitsPerSecond);
+        }
+
+        private static Stopwatch Execute(HashAlgorithm algorithm, int iterations, byte[] data, byte[] expected)
+        {
+            // capture our position
+            int left = Console.CursorLeft;
+            int top = Console.CursorTop;
+
+            int batches = 100;
+            int batchSize = iterations / batches;
+            var timer = Stopwatch.StartNew();
+            for (int i = 0; i < batches; i++)
+            {
+                // write our progress
+                WriteProfilingResult("Progress", "{0:P0}", Divide(i, batches));
+
+                // run our batch
+                for (int j = 0; j < batchSize; j++)
+                {
+                    var result = algorithm.ComputeHash(data);
+                    if (!Equal(expected, result))
+                        throw new Exception("Received inconsistent hash.");
+                }
+
+                // reset cursor
+                Console.SetCursorPosition(left, top);
+            }
+
+            // stop profiling
+            timer.Stop();
+            return timer;
+        }
+
+        private static bool Equal(byte[] expected, byte[] result)
+        {
+            if (expected.Length != result.Length) return false;
+            for (int i = 0; i < expected.Length; i++)
+                if (expected[i] != result[i])
+                    return false;
+
+            return true;
         }
 
         static double Divide(long a, long b)
@@ -133,7 +183,7 @@ namespace MurmurRunner
 
         private static byte[] GenerateRandomData()
         {
-            byte[] data = new byte[261];
+            byte[] data = new byte[256 * 1024];
             using (var gen = RandomNumberGenerator.Create())
                 gen.GetBytes(data);
 
@@ -160,12 +210,18 @@ namespace MurmurRunner
     class IndentingConsoleWriter
     {
         private int IndentAmount { get; set; }
+        private string IndentString { get; set; }
+        public void SetIndent(int value)
+        {
+            IndentAmount = value;
+            IndentString = IndentAmount == 0 ? "" : new string(' ', IndentAmount);
+        }
 
         public IDisposable Indent(int count = 4)
         {
             // create a new scope with current amount, then increment our indent
             var scope = new IndentationScope(this, IndentAmount);
-            IndentAmount += count;
+            SetIndent(IndentAmount += count);
 
             return scope;
         }
@@ -173,7 +229,7 @@ namespace MurmurRunner
         public void WriteLine(string format, params object[] args)
         {
             if (IndentAmount > 0)
-                Console.Write(new string(' ', IndentAmount));
+                Console.Write(IndentString);
 
             Console.WriteLine(format, args);
         }
@@ -197,7 +253,7 @@ namespace MurmurRunner
             public void Dispose()
             {
                 // restore indent amount
-                Writer.IndentAmount = Amount;
+                Writer.SetIndent(Amount);
             }
         }
     }
