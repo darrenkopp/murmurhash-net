@@ -17,26 +17,28 @@ namespace MurmurRunner_x86
 
         static void Main(string[] args)
         {
-            Run(steps: new Dictionary<string,HashAlgorithm> {
+            Run(steps: new Dictionary<string, HashAlgorithm> {
                 { "Unmanaged", Unmanaged },
                 { "Managed", Managed }
             });
 
-            Console.WriteLine();
-            Console.WriteLine("Press any key to exit.");
-            Console.Read();
+            if (Debugger.IsAttached)
+            {
+                Console.WriteLine("Press any key to exit.");
+                Console.Read();
+            }
         }
 
         private static byte[] GenerateRandomData()
         {
-            byte[] data = new byte[263];
+            byte[] data = new byte[256];
             using (var gen = RandomNumberGenerator.Create())
                 gen.GetBytes(data);
 
             return data;
         }
 
-        private static void Run(Dictionary<string,HashAlgorithm> steps = null, int times = 10000000)
+        private static void Run(Dictionary<string, HashAlgorithm> steps = null, int times = 10000000)
         {
             foreach (var step in steps)
             {
@@ -45,7 +47,8 @@ namespace MurmurRunner_x86
 
                 Console.WriteLine("* Profiling '{0}' x {1:N}", name, times);
                 var duration = Profile(algorithm, times);
-                Console.WriteLine("   ===> {0:N}ms ({1:N} / ms)", duration.TotalMilliseconds, times / duration.TotalMilliseconds);
+                Console.WriteLine("   ===> {0:N} ms ({1:N} / ms)", duration.TotalMilliseconds, times / duration.TotalMilliseconds);
+                Console.WriteLine("   ===> {0:N} / tick", times / (float)duration.Ticks);
                 Console.WriteLine(); Console.WriteLine();
             }
         }

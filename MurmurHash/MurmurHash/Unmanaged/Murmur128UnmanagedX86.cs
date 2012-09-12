@@ -174,8 +174,6 @@ namespace Murmur
                 fixed (byte* h = result)
                 {
                     uint* r = (uint*)h;
-                    if ((h + 4) != (r + 1))
-                        throw new Exception("freakin array arithemetic");
 
                     r[0] = h1;
                     r[1] = h2;
@@ -185,10 +183,6 @@ namespace Murmur
             }
 
             return result;
-            //((uint32_t*)out)[0] = h1;
-            //((uint32_t*)out)[1] = h2;
-            //((uint32_t*)out)[2] = h3;
-            //((uint32_t*)out)[3] = h4;
         }
 
         private static uint fmix(uint h)
