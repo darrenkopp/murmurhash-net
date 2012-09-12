@@ -1,0 +1,1 @@
+An implementation of the [Murmur3](http://code.google.com/p/smhasher/wiki/MurmurHash3) hash for .NET
