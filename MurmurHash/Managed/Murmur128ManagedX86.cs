@@ -45,32 +45,28 @@ namespace Murmur
                     // grab pointer to first byte in array
                     fixed (byte* data = &array[0])
                     {
-                        Body(data, blockCount);
+                        Body(data);
                         Tail(data);
                     }
                 }
             }
         }
 
-        unsafe private void Body(byte* data, int blockCount)
+        unsafe private void Body(byte* data)
         {
-            int remaining = blockCount;
-            // calculate our block-aligned starting offset
-            int offset = blockCount * 4;
+            // get number 16-byte blocks
+            uint count = (uint)(Length / 16);
 
             // grab reference to the end of our data as uint blocks
-            uint* blocks = (uint*)(data + offset);
-            while (remaining > 0)
+            uint* blocks = (uint*)(data + Length);
+            while (count-- > 0)
             {
-                // decrement our remaining block count
-                remaining--;
-
                 // grab our 4 byte key segments, stepping our offset position back each time
                 // thus we are walking our array backwards
-                uint k1 = blocks[offset--],
-                     k2 = blocks[offset--],
-                     k3 = blocks[offset--],
-                     k4 = blocks[offset--];
+                uint k1 = *(--blocks),
+                     k2 = *(--blocks),
+                     k3 = *(--blocks),
+                     k4 = *(--blocks);
 
                 k1 *= c1; k1 = (k1 << 15 | k1 >> 17); k1 *= c2; h1 ^= k1;
 
@@ -175,10 +171,10 @@ namespace Murmur
                 {
                     uint* r = (uint*)h;
 
-                    r[0] = h1;
-                    r[1] = h2;
-                    r[2] = h3;
-                    r[3] = h4;
+                    *r++ = h1;
+                    *r++ = h2;
+                    *r++ = h3;
+                    *r++ = h4;
                 }
             }
 

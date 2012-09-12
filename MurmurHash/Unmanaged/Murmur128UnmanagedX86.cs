@@ -38,55 +38,53 @@ namespace Murmur
             // only compute the hash if we have data to hash
             if (Length > 0)
             {
-                // calculate how many 16 byte segments we have
-                var blockCount = (Length / 16);
                 unsafe
                 {
                     // grab pointer to first byte in array
                     fixed (byte* data = &array[0])
                     {
-                        Body(data, blockCount);
+                        Body(data);
                         Tail(data);
                     }
                 }
             }
         }
 
-        unsafe private void Body(byte* data, int blockCount)
+        unsafe private void Body(byte* data)
         {
-            int remaining = blockCount;
-            // calculate our block-aligned starting offset
-            int offset = blockCount * 4;
+            // get number 16-byte blocks
+            uint count = (uint)(Length / 16);
 
             // grab reference to the end of our data as uint blocks
-            uint* blocks = (uint*)(data + offset);
-            while (remaining > 0)
+            uint* blocks = (uint*)(data + Length);
+            while (count-- > 0)
             {
-                // decrement our remaining block count
-                remaining--;
-
                 // grab our 4 byte key segments, stepping our offset position back each time
                 // thus we are walking our array backwards
-                uint k1 = blocks[offset--],
-                     k2 = blocks[offset--],
-                     k3 = blocks[offset--],
-                     k4 = blocks[offset--];
+                uint k1 = *--blocks,
+                     k2 = *--blocks,
+                     k3 = *--blocks,
+                     k4 = *--blocks;
 
-                k1 *= c1; k1 = (k1 << 15 | k1 >> 17); k1 *= c2; h1 ^= k1;
+                // original algorithm
+                //k1 *= c1; k1 = (k1 << 15 | k1 >> 17); k1 *= c2; h1 ^= k1;
+                //h1 = (h1 << 19 | h1 >> 13); h1 += h2; h1 = h1 * 5 + 0x561ccd1b;
+                //k2 *= c2; k2 = (k2 << 16 | k2 >> 16); k2 *= c3; h2 ^= k2;
+                //h2 = (h2 << 17 | h2 >> 15); h2 += h3; h2 = h2 * 5 + 0x0bcaa747;
+                //k3 *= c3; k3 = (k3 << 17 | k3 >> 15); k3 *= c4; h3 ^= k3;
+                //h3 = (h3 << 15 | h3 >> 17); h3 += h4; h3 = h3 * 5 + 0x96cd1c35;
+                //k4 *= c4; k4 = (k4 << 18 | k4 >> 14); k4 *= c1; h4 ^= k4;
+                //h4 = (h4 << 13 | h4 >> 19); h4 += h1; h4 = h4 * 5 + 0x32ac3b17;
 
-                h1 = (h1 << 19 | h1 >> 13); h1 += h2; h1 = h1 * 5 + 0x561ccd1b;
-
-                k2 *= c2; k2 = (k2 << 16 | k2 >> 16); k2 *= c3; h2 ^= k2;
-
-                h2 = (h2 << 17 | h2 >> 15); h2 += h3; h2 = h2 * 5 + 0x0bcaa747;
-
-                k3 *= c3; k3 = (k3 << 17 | k3 >> 15); k3 *= c4; h3 ^= k3;
-
-                h3 = (h3 << 15 | h3 >> 17); h3 += h4; h3 = h3 * 5 + 0x96cd1c35;
-
-                k4 *= c4; k4 = (k4 << 18 | k4 >> 14); k4 *= c1; h4 ^= k4;
-
-                h4 = (h4 << 13 | h4 >> 19); h4 += h1; h4 = h4 * 5 + 0x32ac3b17;
+                // pipelining friendly algorithm
+                h1 = h1 ^ (((k1 * c1) << 15 | (k1 * c1) >> 17) * c2);
+                h1 = ((h1 << 19 | h1 >> 13) + h2) * 5 + 0x561ccd1b;
+                h2 = h2 ^ (((k2 * c2) << 16 | (k2 * c2) >> 16) * c3);
+                h2 = ((h2 << 17 | h2 >> 15) + h3) * 5 + 0x0bcaa747;
+                h3 = h3 ^ (((k3 * c3) << 17 | (k3 * c3) >> 15) * c4);
+                h3 = ((h3 << 15 | h3 >> 17) + h4) * 5 + 0x96cd1c35;
+                h4 = h4 ^ (((k4 * c4) << 18 | (k4 * c4) >> 14) * c1);
+                h4 = ((h4 << 13 | h4 >> 19) + h1) * 5 + 0x32ac3b17;
             }
         }
 
@@ -154,9 +152,25 @@ namespace Murmur
         protected override byte[] HashFinal()
         {
             uint len = (uint)Length;
+
+            // original algorithm
+            //h1 ^= len; h2 ^= len; h3 ^= len; h4 ^= len;
+
+            //h1 += h2; h1 += h3; h1 += h4;
+            //h2 += h1; h3 += h1; h4 += h1;
+
+            //h1 = fmix(h1);
+            //h2 = fmix(h2);
+            //h3 = fmix(h3);
+            //h4 = fmix(h4);
+
+            //h1 += h2; h1 += h3; h1 += h4;
+            //h2 += h1; h3 += h1; h4 += h1;
+
+            // pipelining friendly algorithm
             h1 ^= len; h2 ^= len; h3 ^= len; h4 ^= len;
 
-            h1 += h2; h1 += h3; h1 += h4;
+            h1 += (h2 + h3 + h4);
             h2 += h1; h3 += h1; h4 += h1;
 
             h1 = fmix(h1);
@@ -164,10 +178,7 @@ namespace Murmur
             h3 = fmix(h3);
             h4 = fmix(h4);
 
-            h1 += h2; h1 += h3; h1 += h4;
-            h2 += h1; h3 += h1; h4 += h1;
 
-            // eh? do i initialize this... or what...
             var result = new byte[16];
             unsafe
             {
@@ -175,10 +186,10 @@ namespace Murmur
                 {
                     uint* r = (uint*)h;
 
-                    r[0] = h1;
-                    r[1] = h2;
-                    r[2] = h3;
-                    r[3] = h4;
+                    *r++ = (h1 + h2 + h3 + h4);
+                    *r++ = h2 + (h1 + h2 + h3 + h4);
+                    *r++ = h3 + (h1 + h2 + h3 + h4);
+                    *r++ = h4 + (h1 + h2 + h3 + h4);
                 }
             }
 
@@ -187,10 +198,16 @@ namespace Murmur
 
         private static uint fmix(uint h)
         {
-            h ^= h >> 16;
-            h *= 0x85ebca6b;
-            h ^= h >> 13;
-            h *= 0xc2b2ae35;
+            // original algorithm
+            //h ^= h >> 16;
+            //h *= 0x85ebca6b;
+            //h ^= h >> 13;
+            //h *= 0xc2b2ae35;
+            //h ^= h >> 16;
+
+            // pipelining friendly algorithm
+            h = (h ^ (h >> 16)) * 0x85ebca6b;
+            h = (h ^ (h >> 13)) * 0xc2b2ae35;
             h ^= h >> 16;
 
             return h;
