@@ -42,7 +42,7 @@ namespace Murmur
                     fixed (byte* data = &array[0])
                     {
                         Body(data, blockCount);
-                        Tail(data);
+                        Tail(data + (blockCount * 16));
                     }
                 }
             }
@@ -60,7 +60,7 @@ namespace Murmur
 
                 h1 = (h1 << 27 | h1 >> 37); h1 += h2; h1 = h1 * 5 + 0x52dce729;
 
-                k2 *= c2; k2 = (k1 << 33 | k1 >> 31); k2 *= c1; h2 ^= k2;
+                k2 *= c2; k2 = (k2 << 33 | k2 >> 31); k2 *= c1; h2 ^= k2;
 
                 h2 = (h2 << 31 | h2 >> 33); h2 += h1; h2 = h2 * 5 + 0x38495ab5;
             }
@@ -141,16 +141,18 @@ namespace Murmur
 
             // eh? do i initialize this... or what...
             var result = new byte[16];
-            unsafe
-            {
-                fixed (byte* h = result)
-                {
-                    ulong* r = (ulong*)h;
+            Array.Copy(BitConverter.GetBytes(h1), 0, result, 0, 8);
+            Array.Copy(BitConverter.GetBytes(h2), 0, result, 8, 8);
+            //unsafe
+            //{
+            //    fixed (byte* h = result)
+            //    {
+            //        ulong* r = (ulong*)h;
 
-                    r[0] = h1;
-                    r[1] = h2;
-                }
-            }
+            //        r[0] = h1;
+            //        r[1] = h2;
+            //    }
+            //}
 
             return result;
         }
