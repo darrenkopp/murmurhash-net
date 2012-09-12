@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Murmur;
 using System.Security.Cryptography;
 
-namespace MurmurRunner_x86
+namespace MurmurRunner
 {
     class Program
     {
@@ -20,9 +20,12 @@ namespace MurmurRunner_x86
 
         static void Main(string[] args)
         {
+            Console.WriteLine("Running {0} comparison", Environment.Is64BitProcess ? "x64" : "x86");
+            Console.WriteLine(); Console.WriteLine();
+
             Run(steps: new Dictionary<string, HashAlgorithm> {
-                { "Unmanaged", Unmanaged },
-                { "Managed", Managed },
+                { "Murmur 128 Unmanaged", Unmanaged },
+                { "Murmur 128 Managed", Managed },
                 { "SHA1", Sha1 },
                 { "MD5", Md5 }
             });
@@ -36,7 +39,7 @@ namespace MurmurRunner_x86
 
         private static byte[] GenerateRandomData()
         {
-            byte[] data = new byte[256];
+            byte[] data = new byte[261];
             using (var gen = RandomNumberGenerator.Create())
                 gen.GetBytes(data);
 
@@ -50,10 +53,10 @@ namespace MurmurRunner_x86
                 var name = step.Key;
                 var algorithm = step.Value;
 
-                Console.WriteLine("* Profiling '{0}' x {1:N}", name, times);
+                Console.WriteLine("* Profiling '{0}' x {1:N0}", name, times);
                 var duration = Profile(algorithm, times);
-                Console.WriteLine("   ===> {0:N} ms ({1:N} / ms)", duration.TotalMilliseconds, times / duration.TotalMilliseconds);
-                Console.WriteLine("   ===> {0:N} / tick", times / (float)duration.Ticks);
+                Console.WriteLine("   ===> {0:N} ms ({1:N3} / ms)", duration.TotalMilliseconds, times / duration.TotalMilliseconds);
+                Console.WriteLine("   ===> {0:N0} ticks ({1:N3} / tick)", duration.Ticks, times / (float)duration.Ticks);
                 Console.WriteLine(); Console.WriteLine();
             }
         }

@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MurmurHash", "MurmurHash\MurmurHash.csproj", "{5E240B61-4CCD-4C2A-A0F2-F545C5E9939C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MurmurRunner-x86", "MurmurRunner-x86\MurmurRunner-x86.csproj", "{C0320E2F-CE1D-45BA-8D2D-219F9F5014AE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MurmurRunner-x86", "Runners\MurmurRunner-x86\MurmurRunner-x86.csproj", "{C0320E2F-CE1D-45BA-8D2D-219F9F5014AE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MurmurRunner-x64", "Runners\MurmurRunner-x64\MurmurRunner-x64.csproj", "{90B0617D-0E5A-4604-BF36-AD6D825F2303}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,6 +21,10 @@ Global
 		{C0320E2F-CE1D-45BA-8D2D-219F9F5014AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C0320E2F-CE1D-45BA-8D2D-219F9F5014AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C0320E2F-CE1D-45BA-8D2D-219F9F5014AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90B0617D-0E5A-4604-BF36-AD6D825F2303}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90B0617D-0E5A-4604-BF36-AD6D825F2303}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90B0617D-0E5A-4604-BF36-AD6D825F2303}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90B0617D-0E5A-4604-BF36-AD6D825F2303}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
