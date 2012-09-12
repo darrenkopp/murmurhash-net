@@ -13,13 +13,18 @@ namespace MurmurRunner_x86
     {
         static readonly HashAlgorithm Unmanaged = MurmurHash.Create128(managed: false);
         static readonly HashAlgorithm Managed = MurmurHash.Create128(managed: true);
+        static readonly HashAlgorithm Sha1 = SHA1Managed.Create();
+        static readonly HashAlgorithm Md5 = MD5.Create();
+
         static readonly byte[] Data = GenerateRandomData();
 
         static void Main(string[] args)
         {
             Run(steps: new Dictionary<string, HashAlgorithm> {
                 { "Unmanaged", Unmanaged },
-                { "Managed", Managed }
+                { "Managed", Managed },
+                { "SHA1", Sha1 },
+                { "MD5", Md5 }
             });
 
             if (Debugger.IsAttached)
@@ -38,7 +43,7 @@ namespace MurmurRunner_x86
             return data;
         }
 
-        private static void Run(Dictionary<string, HashAlgorithm> steps = null, int times = 10000000)
+        private static void Run(Dictionary<string, HashAlgorithm> steps = null, int times = 1000000)
         {
             foreach (var step in steps)
             {
