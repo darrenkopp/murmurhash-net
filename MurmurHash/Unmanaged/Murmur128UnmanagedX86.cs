@@ -46,19 +46,20 @@ namespace Murmur
                     // grab pointer to first byte in array
                     fixed (byte* data = &array[0])
                     {
-                        Body(data, count);
+                        Body(data, count, remainder);
                         if (remainder > 0)
-                            Tail(data + Length, remainder);
+                            Tail(data, remainder);
                     }
                 }
             }
         }
 
-        unsafe private void Body(byte* data, int count)
+        unsafe private void Body(byte* data, int count, int remainder)
         {
             // grab reference to the end of our data as uint blocks
-            uint* blocks = (uint*)(data + Length);
-            while (count-- > 0)
+            uint* blocks = (uint*)(data + (Length - remainder));
+            //while (count-- > 0)
+            for (int i = -count; i != 0; i++)
             {
                 // grab our 4 byte key segments, stepping our offset position back each time
                 // thus we are walking our array backwards
@@ -66,26 +67,31 @@ namespace Murmur
                      k2 = *--blocks,
                      k3 = *--blocks,
                      k4 = *--blocks;
+                //uint k1 = blocks[i * 4 + 0],
+                //     k2 = blocks[i * 4 + 1],
+                //     k3 = blocks[i * 4 + 2],
+                //     k4 = blocks[i * 4 + 3];
 
                 // original algorithm
-                //k1 *= c1; k1 = (k1 << 15 | k1 >> 17); k1 *= c2; h1 ^= k1;
-                //h1 = (h1 << 19 | h1 >> 13); h1 += h2; h1 = h1 * 5 + 0x561ccd1b;
-                //k2 *= c2; k2 = (k2 << 16 | k2 >> 16); k2 *= c3; h2 ^= k2;
-                //h2 = (h2 << 17 | h2 >> 15); h2 += h3; h2 = h2 * 5 + 0x0bcaa747;
-                //k3 *= c3; k3 = (k3 << 17 | k3 >> 15); k3 *= c4; h3 ^= k3;
-                //h3 = (h3 << 15 | h3 >> 17); h3 += h4; h3 = h3 * 5 + 0x96cd1c35;
-                //k4 *= c4; k4 = (k4 << 18 | k4 >> 14); k4 *= c1; h4 ^= k4;
-                //h4 = (h4 << 13 | h4 >> 19); h4 += h1; h4 = h4 * 5 + 0x32ac3b17;
+
+                k1 *= c1; k1 = ROTL32(k1, 15); k1 *= c2; h1 ^= k1;
+                h1 = ROTL32(h1, 19); h1 += h2; h1 = h1 * 5 + 0x561ccd1b;
+                k2 *= c2; k2 = ROTL32(k2, 16); k2 *= c3; h2 ^= k2;
+                h2 = ROTL32(h2, 17); h2 += h3; h2 = h2 * 5 + 0x0bcaa747;
+                k3 *= c3; k3 = ROTL32(k3, 17); k3 *= c4; h3 ^= k3;
+                h3 = ROTL32(h3, 15); h3 += h4; h3 = h3 * 5 + 0x96cd1c35;
+                k4 *= c4; k4 = ROTL32(k4, 18); k4 *= c1; h4 ^= k4;
+                h4 = ROTL32(h4, 13); h4 += h1; h4 = h4 * 5 + 0x32ac3b17;
 
                 // pipelining friendly algorithm
-                h1 = h1 ^ (((k1 * c1) << 15 | (k1 * c1) >> 17) * c2);
-                h1 = ((h1 << 19 | h1 >> 13) + h2) * 5 + 0x561ccd1b;
-                h2 = h2 ^ (((k2 * c2) << 16 | (k2 * c2) >> 16) * c3);
-                h2 = ((h2 << 17 | h2 >> 15) + h3) * 5 + 0x0bcaa747;
-                h3 = h3 ^ (((k3 * c3) << 17 | (k3 * c3) >> 15) * c4);
-                h3 = ((h3 << 15 | h3 >> 17) + h4) * 5 + 0x96cd1c35;
-                h4 = h4 ^ (((k4 * c4) << 18 | (k4 * c4) >> 14) * c1);
-                h4 = ((h4 << 13 | h4 >> 19) + h1) * 5 + 0x32ac3b17;
+                //h1 = h1 ^ (((k1 * c1) << 15 | (k1 * c1) >> 17) * c2);
+                //h1 = ((h1 << 19 | h1 >> 13) + h2) * 5 + 0x561ccd1b;
+                //h2 = h2 ^ (((k2 * c2) << 16 | (k2 * c2) >> 16) * c3);
+                //h2 = ((h2 << 17 | h2 >> 15) + h3) * 5 + 0x0bcaa747;
+                //h3 = h3 ^ (((k3 * c3) << 17 | (k3 * c3) >> 15) * c4);
+                //h3 = ((h3 << 15 | h3 >> 17) + h4) * 5 + 0x96cd1c35;
+                //h4 = h4 ^ (((k4 * c4) << 18 | (k4 * c4) >> 14) * c1);
+                //h4 = ((h4 << 13 | h4 >> 19) + h1) * 5 + 0x32ac3b17;
             }
         }
 
@@ -98,56 +104,60 @@ namespace Murmur
             switch (remainder)
             {
                 case 15:
-                    k4 ^= (uint)*tail-- << 16;
+                    k4 ^= (uint)tail[14] << 16;
                     goto case 14;
                 case 14:
-                    k4 ^= (uint)*tail-- << 8;
+                    k4 ^= (uint)tail[13] << 8;
                     goto case 13;
                 case 13:
-                    k4 ^= (uint)*tail-- << 0;
-                    h4 = (h4 ^ ((k4 * c4) << 18 | (k4 * c4) >> 14)) * c1;
+                    k4 ^= (uint)tail[12] << 0;
+                    k4 *= c4; k4  = ROTL32(k4,18); k4 *= c1; h4 ^= k4;
+                    //h4 = (h4 ^ ((k4 * c4) << 18 | (k4 * c4) >> 14)) * c1;
                     //k4 *= c4; k4 = (k4 << 18 | k4 >> 14); k4 *= c1; h4 ^= k4;
                     goto case 12;
                 case 12:
-                    k3 ^= (uint)*tail-- << 24;
+                    k3 ^= (uint)tail[11] << 24;
                     goto case 11;
                 case 11:
-                    k3 ^= (uint)*tail-- << 16;
+                    k3 ^= (uint)tail[10] << 16;
                     goto case 10;
                 case 10:
-                    k3 ^= (uint)*tail-- << 8;
+                    k3 ^= (uint)tail[9] << 8;
                     goto case 9;
                 case 9:
-                    k3 ^= (uint)*tail-- << 0;
-                    h3 = (h3 ^ ((k3 * c3) << 17 | (k3 * c3) >> 15)) * c4;
+                    k3 ^= (uint)tail[8] << 0;
+                    k3 *= c3; k3  = ROTL32(k3,17); k3 *= c4; h3 ^= k3;
+                    //h3 = (h3 ^ ((k3 * c3) << 17 | (k3 * c3) >> 15)) * c4;
                     //k3 *= c3; k3 = (k3 << 17 | k3 >> 15); k3 *= c4; h3 ^= k3;
                     goto case 8;
                 case 8:
-                    k2 ^= (uint)*tail-- << 24;
+                    k2 ^= (uint)tail[7] << 24;
                     goto case 7;
                 case 7:
-                    k2 ^= (uint)*tail-- << 16;
+                    k2 ^= (uint)tail[6] << 16;
                     goto case 6;
                 case 6:
-                    k2 ^= (uint)*tail-- << 8;
+                    k2 ^= (uint)tail[5] << 8;
                     goto case 5;
                 case 5:
-                    k2 ^= (uint)*tail-- << 0;
-                    h2 = (h2 ^ ((k2 * c2) << 16 | (k2 * c2) >> 16)) * c3;
+                    k2 ^= (uint)tail[4] << 0;
+                    k2 *= c2; k2  = ROTL32(k2,16); k2 *= c3; h2 ^= k2;
+                    //h2 = (h2 ^ ((k2 * c2) << 16 | (k2 * c2) >> 16)) * c3;
                     //k2 *= c2; k2 = (k2 << 16 | k2 >> 16); k2 *= c3; h2 ^= k2;
                     goto case 4;
                 case 4:
-                    k1 ^= (uint)*tail-- << 24;
+                    k1 ^= (uint)tail[3] << 24;
                     goto case 3;
                 case 3:
-                    k1 ^= (uint)*tail-- << 16;
+                    k1 ^= (uint)tail[2] << 16;
                     goto case 2;
                 case 2:
-                    k1 ^= (uint)*tail-- << 8;
+                    k1 ^= (uint)tail[1] << 8;
                     goto case 1;
                 case 1:
-                    k1 ^= (uint)*tail-- << 0;
-                    h1 = (h1 ^ ((k1 * c1) << 15 | (k1 * c1) >> 17)) * c2;
+                    k1 ^= (uint)tail[0] << 0;
+                    k1 *= c1; k1  = ROTL32(k1,15); k1 *= c2; h1 ^= k1;
+                    //h1 = (h1 ^ ((k1 * c1) << 15 | (k1 * c1) >> 17)) * c2;
                     //k1 *= c1; k1 = (k1 << 15 | k1 >> 17); k1 *= c2; h1 ^= k1;
                     break;
             }
@@ -158,23 +168,9 @@ namespace Murmur
             uint len = (uint)Length;
 
             // original algorithm
-            //h1 ^= len; h2 ^= len; h3 ^= len; h4 ^= len;
-
-            //h1 += h2; h1 += h3; h1 += h4;
-            //h2 += h1; h3 += h1; h4 += h1;
-
-            //h1 = fmix(h1);
-            //h2 = fmix(h2);
-            //h3 = fmix(h3);
-            //h4 = fmix(h4);
-
-            //h1 += h2; h1 += h3; h1 += h4;
-            //h2 += h1; h3 += h1; h4 += h1;
-
-            // pipelining friendly algorithm
             h1 ^= len; h2 ^= len; h3 ^= len; h4 ^= len;
 
-            h1 += (h2 + h3 + h4);
+            h1 += h2; h1 += h3; h1 += h4;
             h2 += h1; h3 += h1; h4 += h1;
 
             h1 = fmix(h1);
@@ -182,7 +178,21 @@ namespace Murmur
             h3 = fmix(h3);
             h4 = fmix(h4);
 
-            h1 += (h2 + h3 + h4);
+            h1 += h2; h1 += h3; h1 += h4;
+            h2 += h1; h3 += h1; h4 += h1;
+
+            // pipelining friendly algorithm
+            //h1 ^= len; h2 ^= len; h3 ^= len; h4 ^= len;
+
+            //h1 += (h2 + h3 + h4);
+            //h2 += h1; h3 += h1; h4 += h1;
+
+            //h1 = fmix(h1);
+            //h2 = fmix(h2);
+            //h3 = fmix(h3);
+            //h4 = fmix(h4);
+
+            //h1 += (h2 + h3 + h4);
 
             var result = new byte[16];
             unsafe
@@ -191,30 +201,34 @@ namespace Murmur
                 {
                     var r = (uint*)h;
 
-                    *r++ = h1;
-                    *r++ = h2 + h1;
-                    *r++ = h3 + h1;
-                    *r = h4 + h1;
+                    r[0] = h1;
+                    r[1] = h2;
+                    r[2] = h3;
+                    r[3] = h4;
                 }
             }
 
             return result;
         }
 
+        private static uint ROTL32(uint x, byte r)
+        {
+            return (x << r | x >> (32 - r));
+        }
 
         private static uint fmix(uint h)
         {
             // original algorithm
-            //h ^= h >> 16;
-            //h *= 0x85ebca6b;
-            //h ^= h >> 13;
-            //h *= 0xc2b2ae35;
-            //h ^= h >> 16;
+            h ^= h >> 16;
+            h *= 0x85ebca6b;
+            h ^= h >> 13;
+            h *= 0xc2b2ae35;
+            h ^= h >> 16;
 
             // pipelining friendly algorithm
-            h = (h ^ (h >> 16)) * 0x85ebca6b;
-            h = (h ^ (h >> 13)) * 0xc2b2ae35;
-            h ^= h >> 16;
+            //h = (h ^ (h >> 16)) * 0x85ebca6b;
+            //h = (h ^ (h >> 13)) * 0xc2b2ae35;
+            //h ^= h >> 16;
 
             return h;
         }

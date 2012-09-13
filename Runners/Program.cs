@@ -24,19 +24,22 @@ namespace MurmurRunner
 
         static void Main(string[] args)
         {
+            OutputWriter.WriteLine("{0}", GetHashAsString(System.IO.File.ReadAllBytes(@"c:\users\dkopp\documents\hash.bin")));
             OutputWriter.WriteLine("* Environment Architecture: {0}", Environment.Is64BitProcess ? "x64" : "x86");
             OutputWriter.NewLines(1);
 
             using (OutputWriter.Indent(2))
             {
-                Run(name: "Guid x 8", data: SampleData, steps: new Dictionary<string, Tuple<HashAlgorithm, int>> {
+                Run(name: "Guid x 8", dataLength: SampleData.LongLength, hasher: a => a.ComputeHash(SampleData), steps: new Dictionary<string, Tuple<HashAlgorithm, int>> 
+                {
                     { "Murmur 128 Managed", Tuple.Create(Managed, FAST_ITERATION_COUNT) },    
                     { "Murmur 128 Unmanaged", Tuple.Create(Unmanaged, FAST_ITERATION_COUNT) },
                     { "SHA1", Tuple.Create(Sha1, SLOW_ITERATION_COUNT) },
                     { "MD5", Tuple.Create(Md5, SLOW_ITERATION_COUNT) }
                 });
 
-                Run(name: "Random", data: RandomData, steps: new Dictionary<string, Tuple<HashAlgorithm, int>> {
+                Run(name: "Random", dataLength: RandomData.LongLength, hasher: a => a.ComputeHash(RandomData), steps: new Dictionary<string, Tuple<HashAlgorithm, int>> 
+                {
                     { "Murmur 128 Managed", Tuple.Create(Managed, 2999) },    
                     { "Murmur 128 Unmanaged", Tuple.Create(Unmanaged, 2999) },
                     { "SHA1", Tuple.Create(Sha1, 2999) },
@@ -51,7 +54,7 @@ namespace MurmurRunner
             }
         }
 
-        private static void Run(string name, byte[] data, Dictionary<string, Tuple<HashAlgorithm, int>> steps)
+        private static void Run(string name, long dataLength, Func<HashAlgorithm,byte[]> hasher, Dictionary<string, Tuple<HashAlgorithm, int>> steps)
         {
             OutputWriter.WriteLine("* Data Set: {0}", name);
             using (OutputWriter.Indent())
@@ -63,25 +66,25 @@ namespace MurmurRunner
                     var iterations = step.Value.Item2;
 
                     OutputWriter.WriteLine("{1} x {0:N0}", iterations, algorithmFriendlyName);
-                    Profile(algorithm, iterations, data);
+                    Profile(algorithm, iterations, dataLength, hasher);
                 }
             }
         }
 
-        static void Profile(HashAlgorithm algorithm, int iterations, byte[] data)
+        static void Profile(HashAlgorithm algorithm, int iterations, long dataLength, Func<HashAlgorithm, byte[]> hasher)
         {
             using (OutputWriter.Indent())
             {
-                var referenceHash = algorithm.ComputeHash(data);
+                var referenceHash = hasher(algorithm);
                 //WriteProfilingResult("Runs", "{0:N0}", iterations);
                 WriteProfilingResult("Output", GetHashAsString(referenceHash));
 
                 // warmup
                 for (int i = 0; i < 1000; i++)
-                    algorithm.ComputeHash(data);
+                    hasher(algorithm);
 
                 // profile
-                var timer = Execute(algorithm, iterations, data, referenceHash);
+                var timer = Execute(algorithm, iterations, referenceHash, hasher);
 
                 // results
                 WriteProfilingResult("Duration", "{0:N0} ms ({1:N0} ticks)", timer.ElapsedMilliseconds, timer.ElapsedTicks);
@@ -89,24 +92,14 @@ namespace MurmurRunner
                 WriteProfilingResult("Ops/ms", "{0:N3}", Divide(iterations, timer.ElapsedMilliseconds));
 
                 // calculate throughput
-                WriteThroughput(data.Length, iterations, timer);
+                WriteThroughput(dataLength, iterations, timer);
             }
 
             OutputWriter.NewLines();
         }
 
-        private static void WriteThroughput(long length, long iterations, Stopwatch timer)
-        {
-            double totalBytes = length * iterations;
-            double totalSeconds = timer.ElapsedMilliseconds / 1000.0;
 
-            double bytesPerSecond = totalBytes / totalSeconds;
-            double mbitsPerSecond = (bytesPerSecond / (1024.0 * 1024.0));
-
-            WriteProfilingResult("MiB/s", "{0:N3}", mbitsPerSecond);
-        }
-
-        private static Stopwatch Execute(HashAlgorithm algorithm, int iterations, byte[] data, byte[] expected)
+        private static Stopwatch Execute(HashAlgorithm algorithm, int iterations, byte[] expected, Func<HashAlgorithm, byte[]> hasher)
         {
             // capture our position
             int left = Console.CursorLeft;
@@ -123,7 +116,7 @@ namespace MurmurRunner
                 // run our batch
                 for (int j = 0; j < batchSize; j++)
                 {
-                    var result = algorithm.ComputeHash(data);
+                    var result = hasher(algorithm);
                     if (!Equal(expected, result))
                         throw new Exception("Received inconsistent hash.");
                 }
@@ -135,6 +128,18 @@ namespace MurmurRunner
             // stop profiling
             timer.Stop();
             return timer;
+        }
+
+
+        private static void WriteThroughput(long length, long iterations, Stopwatch timer)
+        {
+            double totalBytes = length * iterations;
+            double totalSeconds = timer.ElapsedMilliseconds / 1000.0;
+
+            double bytesPerSecond = totalBytes / totalSeconds;
+            double mbitsPerSecond = (bytesPerSecond / (1024.0 * 1024.0));
+
+            WriteProfilingResult("MiB/s", "{0:N3}", mbitsPerSecond);
         }
 
         private static bool Equal(byte[] expected, byte[] result)
