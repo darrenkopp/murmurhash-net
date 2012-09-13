@@ -39,60 +39,56 @@ namespace Murmur
             if (Length > 0)
             {
                 // calculate how many 16 byte segments we have
-                var blockCount = (Length / 16);
-                unsafe
-                {
-                    // grab pointer to first byte in array
-                    fixed (byte* data = &array[0])
-                    {
-                        Body(data);
-                        Tail(data);
-                    }
-                }
+                var count = (Length / 16);
+                var remainder = (Length & 15);
+
+                Body(array, count);
+                if (remainder > 0)
+                    Tail(array, remainder);
             }
         }
 
-        unsafe private void Body(byte* data)
+        private void Body(byte[] data, int count)
         {
-            // get number 16-byte blocks
-            uint count = (uint)(Length / 16);
+            int offset = count * 16;
 
             // grab reference to the end of our data as uint blocks
-            uint* blocks = (uint*)(data + Length);
-            while (count-- > 0)
+            for (int i = offset; i > 0; i -= 16)
             {
-                // grab our 4 byte key segments, stepping our offset position back each time
-                // thus we are walking our array backwards
-                uint k1 = *(--blocks),
-                     k2 = *(--blocks),
-                     k3 = *(--blocks),
-                     k4 = *(--blocks);
+                uint k1 = BitConverter.ToUInt32(data, i - 4),
+                     k2 = BitConverter.ToUInt32(data, i - 8),
+                     k3 = BitConverter.ToUInt32(data, i - 12),
+                     k4 = BitConverter.ToUInt32(data, i - 16);
 
-                k1 *= c1; k1 = (k1 << 15 | k1 >> 17); k1 *= c2; h1 ^= k1;
+                // original algorithm
+                //k1 *= c1; k1 = (k1 << 15 | k1 >> 17); k1 *= c2; h1 ^= k1;
+                //h1 = (h1 << 19 | h1 >> 13); h1 += h2; h1 = h1 * 5 + 0x561ccd1b;
+                //k2 *= c2; k2 = (k2 << 16 | k2 >> 16); k2 *= c3; h2 ^= k2;
+                //h2 = (h2 << 17 | h2 >> 15); h2 += h3; h2 = h2 * 5 + 0x0bcaa747;
+                //k3 *= c3; k3 = (k3 << 17 | k3 >> 15); k3 *= c4; h3 ^= k3;
+                //h3 = (h3 << 15 | h3 >> 17); h3 += h4; h3 = h3 * 5 + 0x96cd1c35;
+                //k4 *= c4; k4 = (k4 << 18 | k4 >> 14); k4 *= c1; h4 ^= k4;
+                //h4 = (h4 << 13 | h4 >> 19); h4 += h1; h4 = h4 * 5 + 0x32ac3b17;
 
-                h1 = (h1 << 19 | h1 >> 13); h1 += h2; h1 = h1 * 5 + 0x561ccd1b;
-
-                k2 *= c2; k2 = (k2 << 16 | k2 >> 16); k2 *= c3; h2 ^= k2;
-
-                h2 = (h2 << 17 | h2 >> 15); h2 += h3; h2 = h2 * 5 + 0x0bcaa747;
-
-                k3 *= c3; k3 = (k3 << 17 | k3 >> 15); k3 *= c4; h3 ^= k3;
-
-                h3 = (h3 << 15 | h3 >> 17); h3 += h4; h3 = h3 * 5 + 0x96cd1c35;
-
-                k4 *= c4; k4 = (k4 << 18 | k4 >> 14); k4 *= c1; h4 ^= k4;
-
-                h4 = (h4 << 13 | h4 >> 19); h4 += h1; h4 = h4 * 5 + 0x32ac3b17;
+                // pipelining friendly algorithm
+                h1 = h1 ^ (((k1 * c1) << 15 | (k1 * c1) >> 17) * c2);
+                h1 = ((h1 << 19 | h1 >> 13) + h2) * 5 + 0x561ccd1b;
+                h2 = h2 ^ (((k2 * c2) << 16 | (k2 * c2) >> 16) * c3);
+                h2 = ((h2 << 17 | h2 >> 15) + h3) * 5 + 0x0bcaa747;
+                h3 = h3 ^ (((k3 * c3) << 17 | (k3 * c3) >> 15) * c4);
+                h3 = ((h3 << 15 | h3 >> 17) + h4) * 5 + 0x96cd1c35;
+                h4 = h4 ^ (((k4 * c4) << 18 | (k4 * c4) >> 14) * c1);
+                h4 = ((h4 << 13 | h4 >> 19) + h1) * 5 + 0x32ac3b17;
             }
         }
 
-        unsafe private void Tail(byte* tail)
+        private void Tail(byte[] tail, int remainder)
         {
             // create our keys and initialize to 0
             uint k1 = 0, k2 = 0, k3 = 0, k4 = 0;
 
             // determine how many bytes we have left to work with based on length
-            switch (Length & 15)
+            switch (remainder)
             {
                 case 15:
                     k4 ^= (uint)tail[14] << 16;
@@ -102,7 +98,8 @@ namespace Murmur
                     goto case 13;
                 case 13:
                     k4 ^= (uint)tail[12] << 0;
-                    k4 *= c4; k4 = (k4 << 18 | k4 >> 14); k4 *= c1; h4 ^= k4;
+                    h4 = (h4 ^ ((k4 * c4) << 18 | (k4 * c4) >> 14)) * c1;
+                    //k4 *= c4; k4 = (k4 << 18 | k4 >> 14); k4 *= c1; h4 ^= k4;
                     goto case 12;
                 case 12:
                     k3 ^= (uint)tail[11] << 24;
@@ -115,7 +112,8 @@ namespace Murmur
                     goto case 9;
                 case 9:
                     k3 ^= (uint)tail[8] << 0;
-                    k3 *= c3; k3 = (k3 << 17 | k3 >> 15); k3 *= c4; h3 ^= k3;
+                    h3 = (h3 ^ ((k3 * c3) << 17 | (k3 * c3) >> 15)) * c4;
+                    //k3 *= c3; k3 = (k3 << 17 | k3 >> 15); k3 *= c4; h3 ^= k3;
                     goto case 8;
                 case 8:
                     k2 ^= (uint)tail[7] << 24;
@@ -128,7 +126,8 @@ namespace Murmur
                     goto case 5;
                 case 5:
                     k2 ^= (uint)tail[4] << 0;
-                    k2 *= c2; k2 = (k2 << 16 | k2 >> 16); k2 *= c3; h2 ^= k2;
+                    h2 = (h2 ^ ((k2 * c2) << 16 | (k2 * c2) >> 16)) * c3;
+                    //k2 *= c2; k2 = (k2 << 16 | k2 >> 16); k2 *= c3; h2 ^= k2;
                     goto case 4;
                 case 4:
                     k1 ^= (uint)tail[3] << 24;
@@ -141,18 +140,34 @@ namespace Murmur
                     goto case 1;
                 case 1:
                     k1 ^= (uint)tail[0] << 0;
-                    k1 *= c1; k1 = (k1 << 15 | k1 >> 17); k1 *= c2; h1 ^= k1;
-                    return;
-                default: return;
+                    h1 = (h1 ^ ((k1 * c1) << 15 | (k1 * c1) >> 17)) * c2;
+                    //k1 *= c1; k1 = (k1 << 15 | k1 >> 17); k1 *= c2; h1 ^= k1;
+                    break;
             }
         }
 
         protected override byte[] HashFinal()
         {
             uint len = (uint)Length;
+
+            // original algorithm
+            //h1 ^= len; h2 ^= len; h3 ^= len; h4 ^= len;
+
+            //h1 += h2; h1 += h3; h1 += h4;
+            //h2 += h1; h3 += h1; h4 += h1;
+
+            //h1 = fmix(h1);
+            //h2 = fmix(h2);
+            //h3 = fmix(h3);
+            //h4 = fmix(h4);
+
+            //h1 += h2; h1 += h3; h1 += h4;
+            //h2 += h1; h3 += h1; h4 += h1;
+
+            // pipelining friendly algorithm
             h1 ^= len; h2 ^= len; h3 ^= len; h4 ^= len;
 
-            h1 += h2; h1 += h3; h1 += h4;
+            h1 += (h2 + h3 + h4);
             h2 += h1; h3 += h1; h4 += h1;
 
             h1 = fmix(h1);
@@ -160,33 +175,30 @@ namespace Murmur
             h3 = fmix(h3);
             h4 = fmix(h4);
 
-            h1 += h2; h1 += h3; h1 += h4;
+            h1 += (h2 + h3 + h4);
             h2 += h1; h3 += h1; h4 += h1;
 
-            // eh? do i initialize this... or what...
             var result = new byte[16];
-            unsafe
-            {
-                fixed (byte* h = result)
-                {
-                    uint* r = (uint*)h;
-
-                    *r++ = h1;
-                    *r++ = h2;
-                    *r++ = h3;
-                    *r++ = h4;
-                }
-            }
+            Array.Copy(BitConverter.GetBytes(h1), 0, result, 0, 4);
+            Array.Copy(BitConverter.GetBytes(h2), 0, result, 4, 4);
+            Array.Copy(BitConverter.GetBytes(h3), 0, result, 8, 4);
+            Array.Copy(BitConverter.GetBytes(h4), 0, result, 12, 4);
 
             return result;
         }
 
         private static uint fmix(uint h)
         {
-            h ^= h >> 16;
-            h *= 0x85ebca6b;
-            h ^= h >> 13;
-            h *= 0xc2b2ae35;
+            // original algorithm
+            //h ^= h >> 16;
+            //h *= 0x85ebca6b;
+            //h ^= h >> 13;
+            //h *= 0xc2b2ae35;
+            //h ^= h >> 16;
+
+            // pipelining friendly algorithm
+            h = (h ^ (h >> 16)) * 0x85ebca6b;
+            h = (h ^ (h >> 13)) * 0xc2b2ae35;
             h ^= h >> 16;
 
             return h;

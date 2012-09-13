@@ -38,23 +38,24 @@ namespace Murmur
             // only compute the hash if we have data to hash
             if (Length > 0)
             {
+                int count = Length / 16;
+                int remainder = Length & 15;
+
                 unsafe
                 {
                     // grab pointer to first byte in array
                     fixed (byte* data = &array[0])
                     {
-                        Body(data);
-                        Tail(data);
+                        Body(data, count);
+                        if (remainder > 0)
+                            Tail(data + Length, remainder);
                     }
                 }
             }
         }
 
-        unsafe private void Body(byte* data)
+        unsafe private void Body(byte* data, int count)
         {
-            // get number 16-byte blocks
-            uint count = (uint)(Length / 16);
-
             // grab reference to the end of our data as uint blocks
             uint* blocks = (uint*)(data + Length);
             while (count-- > 0)
@@ -88,64 +89,67 @@ namespace Murmur
             }
         }
 
-        unsafe private void Tail(byte* tail)
+        unsafe private void Tail(byte* tail, int remainder)
         {
             // create our keys and initialize to 0
             uint k1 = 0, k2 = 0, k3 = 0, k4 = 0;
 
             // determine how many bytes we have left to work with based on length
-            switch (Length & 15)
+            switch (remainder)
             {
                 case 15:
-                    k4 ^= (uint)tail[14] << 16;
+                    k4 ^= (uint)*tail-- << 16;
                     goto case 14;
                 case 14:
-                    k4 ^= (uint)tail[13] << 8;
+                    k4 ^= (uint)*tail-- << 8;
                     goto case 13;
                 case 13:
-                    k4 ^= (uint)tail[12] << 0;
-                    k4 *= c4; k4 = (k4 << 18 | k4 >> 14); k4 *= c1; h4 ^= k4;
+                    k4 ^= (uint)*tail-- << 0;
+                    h4 = (h4 ^ ((k4 * c4) << 18 | (k4 * c4) >> 14)) * c1;
+                    //k4 *= c4; k4 = (k4 << 18 | k4 >> 14); k4 *= c1; h4 ^= k4;
                     goto case 12;
                 case 12:
-                    k3 ^= (uint)tail[11] << 24;
+                    k3 ^= (uint)*tail-- << 24;
                     goto case 11;
                 case 11:
-                    k3 ^= (uint)tail[10] << 16;
+                    k3 ^= (uint)*tail-- << 16;
                     goto case 10;
                 case 10:
-                    k3 ^= (uint)tail[9] << 8;
+                    k3 ^= (uint)*tail-- << 8;
                     goto case 9;
                 case 9:
-                    k3 ^= (uint)tail[8] << 0;
-                    k3 *= c3; k3 = (k3 << 17 | k3 >> 15); k3 *= c4; h3 ^= k3;
+                    k3 ^= (uint)*tail-- << 0;
+                    h3 = (h3 ^ ((k3 * c3) << 17 | (k3 * c3) >> 15)) * c4;
+                    //k3 *= c3; k3 = (k3 << 17 | k3 >> 15); k3 *= c4; h3 ^= k3;
                     goto case 8;
                 case 8:
-                    k2 ^= (uint)tail[7] << 24;
+                    k2 ^= (uint)*tail-- << 24;
                     goto case 7;
                 case 7:
-                    k2 ^= (uint)tail[6] << 16;
+                    k2 ^= (uint)*tail-- << 16;
                     goto case 6;
                 case 6:
-                    k2 ^= (uint)tail[5] << 8;
+                    k2 ^= (uint)*tail-- << 8;
                     goto case 5;
                 case 5:
-                    k2 ^= (uint)tail[4] << 0;
-                    k2 *= c2; k2 = (k2 << 16 | k2 >> 16); k2 *= c3; h2 ^= k2;
+                    k2 ^= (uint)*tail-- << 0;
+                    h2 = (h2 ^ ((k2 * c2) << 16 | (k2 * c2) >> 16)) * c3;
+                    //k2 *= c2; k2 = (k2 << 16 | k2 >> 16); k2 *= c3; h2 ^= k2;
                     goto case 4;
                 case 4:
-                    k1 ^= (uint)tail[3] << 24;
+                    k1 ^= (uint)*tail-- << 24;
                     goto case 3;
                 case 3:
-                    k1 ^= (uint)tail[2] << 16;
+                    k1 ^= (uint)*tail-- << 16;
                     goto case 2;
                 case 2:
-                    k1 ^= (uint)tail[1] << 8;
+                    k1 ^= (uint)*tail-- << 8;
                     goto case 1;
                 case 1:
-                    k1 ^= (uint)tail[0] << 0;
-                    k1 *= c1; k1 = (k1 << 15 | k1 >> 17); k1 *= c2; h1 ^= k1;
-                    return;
-                default: return;
+                    k1 ^= (uint)*tail-- << 0;
+                    h1 = (h1 ^ ((k1 * c1) << 15 | (k1 * c1) >> 17)) * c2;
+                    //k1 *= c1; k1 = (k1 << 15 | k1 >> 17); k1 *= c2; h1 ^= k1;
+                    break;
             }
         }
 
@@ -178,23 +182,25 @@ namespace Murmur
             h3 = fmix(h3);
             h4 = fmix(h4);
 
+            h1 += (h2 + h3 + h4);
 
             var result = new byte[16];
             unsafe
             {
                 fixed (byte* h = result)
                 {
-                    uint* r = (uint*)h;
+                    var r = (uint*)h;
 
-                    *r++ = (h1 + h2 + h3 + h4);
-                    *r++ = h2 + (h1 + h2 + h3 + h4);
-                    *r++ = h3 + (h1 + h2 + h3 + h4);
-                    *r++ = h4 + (h1 + h2 + h3 + h4);
+                    *r++ = h1;
+                    *r++ = h2 + h1;
+                    *r++ = h3 + h1;
+                    *r = h4 + h1;
                 }
             }
 
             return result;
         }
+
 
         private static uint fmix(uint h)
         {

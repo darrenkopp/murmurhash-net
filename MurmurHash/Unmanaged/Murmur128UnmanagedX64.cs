@@ -35,10 +35,8 @@ namespace Murmur
             if (Length > 0)
             {
                 // calculate how many 16 byte segments we have
-                int remainder;
-                int count = Math.DivRem(Length, 16, out remainder);
-                //var count = (Length / 16);
-                //var remainder = (Length & 15);
+                var count = (Length / 16);
+                var remainder = (Length & 15);
 
                 unsafe
                 {
