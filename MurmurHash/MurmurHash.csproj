@@ -41,6 +41,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extensions.cs" />
     <Compile Include="Managed\Murmur128ManagedX64.cs" />
     <Compile Include="Murmur128.cs" />
     <Compile Include="MurmurHash.cs" />

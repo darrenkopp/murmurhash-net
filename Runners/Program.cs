@@ -206,7 +206,7 @@ namespace MurmurRunner
 
         private static byte[] GenerateRandomData()
         {
-            byte[] data = new byte[256 * 1024 + 13];
+            byte[] data = new byte[256 * 1024];
             using (var gen = RandomNumberGenerator.Create())
                 gen.GetBytes(data);
 

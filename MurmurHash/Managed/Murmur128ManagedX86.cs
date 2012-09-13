@@ -43,14 +43,12 @@ namespace Murmur
                 var count = (Length / 16);
                 var remainder = (Length & 15);
 
-                Body(array, count);
-                if (remainder > 0)
-                    Tail(array, remainder);
+                Body(array, count, remainder);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Body(byte[] data, int count)
+        private void Body(byte[] data, int count, int remainder)
         {
             int offset = 0;
 
@@ -65,43 +63,25 @@ namespace Murmur
 
                 offset += 16;
 
-                // original algorithm
-                //k1 *= c1; k1 = ROTL32(k1, 15); k1 *= c2; h1 ^= k1;
-                //h1 = ROTL32(h1, 19); h1 += h2; h1 = h1 * 5 + 0x561ccd1b;
-                //k2 *= c2; k2 = ROTL32(k2, 16); k2 *= c3; h2 ^= k2;
-                //h2 = ROTL32(h2, 17); h2 += h3; h2 = h2 * 5 + 0x0bcaa747;
-                //k3 *= c3; k3 = ROTL32(k3, 17); k3 *= c4; h3 ^= k3;
-                //h3 = ROTL32(h3, 15); h3 += h4; h3 = h3 * 5 + 0x96cd1c35;
-                //k4 *= c4; k4 = ROTL32(k4, 18); k4 *= c1; h4 ^= k4;
-                //h4 = ROTL32(h4, 13); h4 += h1; h4 = h4 * 5 + 0x32ac3b17;
+                h1 = h1 ^ ((k1 * c1).RotateLeft(15) * c2);
+                h1 = (h1.RotateLeft(19) + h2) * 5 + 0x561ccd1b;
 
-                // pipelined w/ rotl
-                h1 = h1 ^ (ROTL32(k1 * c1, 15) * c2);
-                h1 = (ROTL32(h1, 19) + h2) * 5 + 0x561ccd1b;
+                h2 = h2 ^ ((k2 * c2).RotateLeft(16) * c3);
+                h2 = (h2.RotateLeft(17) + h3) * 5 + 0x0bcaa747;
 
-                h2 = h2 ^ (ROTL32(k2 * c2, 16) * c3);
-                h2 = (ROTL32(h2, 17) + h3) * 5 + 0x0bcaa747;
+                h3 = h3 ^ ((k3 * c3).RotateLeft(17) * c4);
+                h3 = (h3.RotateLeft(15) + h4) * 5 + 0x96cd1c35;
 
-                h3 = h3 ^ (ROTL32(k3 * c3, 17) * c4);
-                h3 = (ROTL32(h3, 15) + h4) * 5 + 0x96cd1c35;
-
-                h4 = h4 ^ (ROTL32(k4 * c4, 18) * c1);
-                h4 = (ROTL32(h4, 13) + h1) * 5 + 0x32ac3b17;
-
-                // pipelining friendly algorithm
-                //h1 = h1 ^ (((k1 * c1) << 15 | (k1 * c1) >> 17) * c2);
-                //h1 = ((h1 << 19 | h1 >> 13) + h2) * 5 + 0x561ccd1b;
-                //h2 = h2 ^ (((k2 * c2) << 16 | (k2 * c2) >> 16) * c3);
-                //h2 = ((h2 << 17 | h2 >> 15) + h3) * 5 + 0x0bcaa747;
-                //h3 = h3 ^ (((k3 * c3) << 17 | (k3 * c3) >> 15) * c4);
-                //h3 = ((h3 << 15 | h3 >> 17) + h4) * 5 + 0x96cd1c35;
-                //h4 = h4 ^ (((k4 * c4) << 18 | (k4 * c4) >> 14) * c1);
-                //h4 = ((h4 << 13 | h4 >> 19) + h1) * 5 + 0x32ac3b17;
+                h4 = h4 ^ ((k4 * c4).RotateLeft(18) * c1);
+                h4 = (h4.RotateLeft(13) + h1) * 5 + 0x32ac3b17;
             }
+
+            if (remainder > 0)
+                Tail(data, offset, remainder);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Tail(byte[] tail, int remainder)
+        private void Tail(byte[] tail, int position, int remainder)
         {
             // create our keys and initialize to 0
             uint k1 = 0, k2 = 0, k3 = 0, k4 = 0;
@@ -109,81 +89,32 @@ namespace Murmur
             // determine how many bytes we have left to work with based on length
             switch (remainder)
             {
-                case 15:
-                    k4 ^= (uint)tail[14] << 16;
-                    goto case 14;
-                case 14:
-                    k4 ^= (uint)tail[13] << 8;
-                    goto case 13;
-                case 13:
-                    k4 ^= (uint)tail[12] << 0;
-                    h4 = h4 ^ (ROTL32(k4 * c4, 18) * c1);
-                    //k4 *= c4; k4 = ROTL32(k4, 18); k4 *= c1; h4 ^= k4;
-                    goto case 12;
-                case 12:
-                    k3 ^= (uint)tail[11] << 24;
-                    goto case 11;
-                case 11:
-                    k3 ^= (uint)tail[10] << 16;
-                    goto case 10;
-                case 10:
-                    k3 ^= (uint)tail[9] << 8;
-                    goto case 9;
-                case 9:
-                    k3 ^= (uint)tail[8] << 0;
-                    h3 = h3 ^ (ROTL32(k3 * c3, 17) * c4);
-                    //k3 *= c3; k3 = ROTL32(k3, 17); k3 *= c4; h3 ^= k3;
-                    goto case 8;
-                case 8:
-                    k2 ^= (uint)tail[7] << 24;
-                    goto case 7;
-                case 7:
-                    k2 ^= (uint)tail[6] << 16;
-                    goto case 6;
-                case 6:
-                    k2 ^= (uint)tail[5] << 8;
-                    goto case 5;
-                case 5:
-                    k2 ^= (uint)tail[4] << 0;
-                    h2 = h2 ^ (ROTL32(k2 * c2, 16) * c3);
-                    //k2 *= c2; k2 = ROTL32(k2, 16); k2 *= c3; h2 ^= k2;
-                    goto case 4;
-                case 4:
-                    k1 ^= (uint)tail[3] << 24;
-                    goto case 3;
-                case 3:
-                    k1 ^= (uint)tail[2] << 16;
-                    goto case 2;
-                case 2:
-                    k1 ^= (uint)tail[1] << 8;
-                    goto case 1;
-                case 1:
-                    k1 ^= (uint)tail[0] << 0;
-                    h1 = h1 ^ (ROTL32(k1 * c1, 15) * c2);
-                    //k1 *= c1; k1 = ROTL32(k1, 15); k1 *= c2; h1 ^= k1;
-                    break;
+                case 15: k4 ^= (uint)tail[position + 14] << 16; goto case 14;
+                case 14: k4 ^= (uint)tail[position + 13] << 8; goto case 13;
+                case 13: k4 ^= (uint)tail[position + 12] << 0; goto case 12;
+                case 12: k3 ^= (uint)tail[position + 11] << 24; goto case 11;
+                case 11: k3 ^= (uint)tail[position + 10] << 16; goto case 10;
+                case 10: k3 ^= (uint)tail[position + 9] << 8; goto case 9;
+                case 9: k3 ^= (uint)tail[position + 8] << 0; goto case 8;
+                case 8: k2 ^= (uint)tail[position + 7] << 24; goto case 7;
+                case 7: k2 ^= (uint)tail[position + 6] << 16; goto case 6;
+                case 6: k2 ^= (uint)tail[position + 5] << 8; goto case 5;
+                case 5: k2 ^= (uint)tail[position + 4] << 0; goto case 4;
+                case 4: k1 ^= (uint)tail[position + 3] << 24; goto case 3;
+                case 3: k1 ^= (uint)tail[position + 2] << 16; goto case 2;
+                case 2: k1 ^= (uint)tail[position + 1] << 8; goto case 1;
+                case 1: k1 ^= (uint)tail[position] << 0; break;
             }
+
+            h4 = h4 ^ ((k4 * c4).RotateLeft(18) * c1);
+            h3 = h3 ^ ((k3 * c3).RotateLeft(17) * c4);
+            h2 = h2 ^ ((k2 * c2).RotateLeft(16) * c3);
+            h1 = h1 ^ ((k1 * c1).RotateLeft(15) * c2);
         }
 
         protected override byte[] HashFinal()
         {
             uint len = (uint)Length;
-
-            // original algorithm
-            //h1 ^= len; h2 ^= len; h3 ^= len; h4 ^= len;
-
-            //h1 += h2; h1 += h3; h1 += h4;
-            //h2 += h1; h3 += h1; h4 += h1;
-
-            //h1 = fmix(h1);
-            //h2 = fmix(h2);
-            //h3 = fmix(h3);
-            //h4 = fmix(h4);
-
-            //h1 += h2; h1 += h3; h1 += h4;
-            //h2 += h1; h3 += h1; h4 += h1;
-
-            // pipelining friendly algorithm
             h1 ^= len; h2 ^= len; h3 ^= len; h4 ^= len;
 
             h1 += (h2 + h3 + h4);
@@ -194,7 +125,7 @@ namespace Murmur
             h3 = fmix(h3);
             h4 = fmix(h4);
 
-            h1 += h2; h1 += h3; h1 += h4;
+            h1 += (h2 + h3 + h4);
             h2 += h1; h3 += h1; h4 += h1;
 
             var result = new byte[16];
@@ -209,25 +140,12 @@ namespace Murmur
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static uint fmix(uint h)
         {
-            // original algorithm
-            //h ^= h >> 16;
-            //h *= 0x85ebca6b;
-            //h ^= h >> 13;
-            //h *= 0xc2b2ae35;
-            //h ^= h >> 16;
-
             // pipelining friendly algorithm
             h = (h ^ (h >> 16)) * 0x85ebca6b;
             h = (h ^ (h >> 13)) * 0xc2b2ae35;
             h ^= h >> 16;
 
             return h;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint ROTL32(uint x, byte r)
-        {
-            return (x << r | x >> (32 - r));
         }
     }
 }

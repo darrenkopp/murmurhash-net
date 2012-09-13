@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Murmur
@@ -26,6 +27,7 @@ namespace Murmur
             h1 = h2 = Seed;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected override void HashCore(byte[] array, int ibStart, int cbSize)
         {
             // store the length of the hash (for use later)
@@ -34,108 +36,70 @@ namespace Murmur
             // only compute the hash if we have data to hash
             if (Length > 0)
             {
-                // calculate how many 16 byte segments we have
-                var count = (Length / 16);
-                var remainder = (Length & 15);
-
                 unsafe
                 {
                     // grab pointer to first byte in array
-                    fixed (byte* data = &array[0])
-                    {
-                        byte* end = data + Length;
-                        byte* blockEnd = end - remainder;
-
-                        Body((ulong*)data, (ulong*)blockEnd);
-
-                        // run tail computation if we have a remainder
-                        if (remainder > 0)
-                            Tail(end, remainder);
-                    }
+                    fixed (byte* data = array)
+                        Body(data);
                 }
             }
         }
 
-        unsafe private void Body(ulong* blocks, ulong* end)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        unsafe private void Body(byte* data)
         {
-            while (blocks < end)
+            int remaining = Length;
+            int position = 0;
+            ulong* current = (ulong*)data;
+
+            while (remaining >= 16)
             {
-                ulong k1 = *(blocks++), k2 = *(blocks++);
+                ulong k1 = *current++, k2 = *current++;
+                remaining -= 16; position += 16;
 
-                // original algorithm
-                //k1 *= c1; k1 = (k1 << 31 | k1 >> 33); k1 *= c2; h1 ^= k1;
-                //h1 = (h1 << 27 | h1 >> 37); h1 += h2; h1 = h1 * 5 + 0x52dce729;
-                //k2 *= c2; k2 = (k2 << 33 | k2 >> 31); k2 *= c1; h2 ^= k2;
-                //h2 = (h2 << 31 | h2 >> 33); h2 += h1; h2 = h2 * 5 + 0x38495ab5;
+                // a variant of original algorithm optimized for processor instruction pipelining
+                h1 = h1 ^ ((k1 * c1).RotateLeft(31) * c2);
+                h1 = (h1.RotateLeft(27) + h2) * 5 + 0x52dce729;
 
-                // pipelining optimized algorithm
-                h1 = h1 ^ (((k1 * c1) << 31 | (k1 * c1) >> 33) * c2);
-                h1 = ((h1 << 27 | h1 >> 37) + h2) * 5 + 0x52dce729;
-
-                h2 = h2 ^ (((k2 * c2) << 33 | (k2 * c2) >> 31) * c1);
-                h2 = ((h2 << 31 | h2 >> 33) + h1) * 5 + 0x38495ab5;
+                h2 = h2 ^ ((k2 * c2).RotateLeft(33) * c1);
+                h2 = (h2.RotateLeft(31) + h1) * 5 + 0x38495ab5;
             }
+
+            if (remaining > 0)
+                Tail(data, position, remaining);
         }
 
-        unsafe private void Tail(byte* tail, int remainder)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        unsafe private void Tail(byte* tail, int start, int remaining)
         {
             // create our keys and initialize to 0
             ulong k1 = 0, k2 = 0;
 
             // determine how many bytes we have left to work with based on length
-            switch (remainder)
+            switch (remaining)
             {
-                case 15:
-                    k2 ^= ((ulong)*tail--) << 48;
-                    goto case 14;
-                case 14:
-                    k2 ^= ((ulong)*tail--) << 40;
-                    goto case 13;
-                case 13:
-                    k2 ^= ((ulong)*tail--) << 32;
-                    goto case 12;
-                case 12:
-                    k2 ^= ((ulong)*tail--) << 24;
-                    goto case 11;
-                case 11:
-                    k2 ^= ((ulong)*tail--) << 16;
-                    goto case 10;
-                case 10:
-                    k2 ^= ((ulong)*tail--) << 8;
-                    goto case 9;
-                case 9:
-                    k2 ^= ((ulong)*tail--) << 0;
-                    h2 = h2 ^ (((k2 * c2) << 33 | (k2 * c2) >> 31) * c1);
-                    goto case 8;
-                case 8:
-                    k1 ^= ((ulong)*tail--) << 56;
-                    goto case 7;
-                case 7:
-                    k1 ^= ((ulong)*tail--) << 48;
-                    goto case 6;
-                case 6:
-                    k1 ^= ((ulong)*tail--) << 40;
-                    goto case 5;
-                case 5:
-                    k1 ^= ((ulong)*tail--) << 32;
-                    goto case 4;
-                case 4:
-                    k1 ^= ((ulong)*tail--) << 24;
-                    goto case 3;
-                case 3:
-                    k1 ^= ((ulong)*tail--) << 16;
-                    goto case 2;
-                case 2:
-                    k1 ^= ((ulong)*tail--) << 8;
-                    goto case 1;
-                case 1:
-                    k1 ^= ((ulong)*tail--) << 0;
-                    h1 = h1 ^ (((k1 * c1) << 31 | (k1 * c1) >> 33) * c2);
-                    break;
-                //default: break;
+                case 15: k2 ^= (ulong)tail[start + 14] << 48; goto case 14;
+                case 14: k2 ^= (ulong)tail[start + 13] << 40; goto case 13;
+                case 13: k2 ^= (ulong)tail[start + 12] << 32; goto case 12;
+                case 12: k2 ^= (ulong)tail[start + 11] << 24; goto case 11;
+                case 11: k2 ^= (ulong)tail[start + 10] << 16; goto case 10;
+                case 10: k2 ^= (ulong)tail[start + 9] << 8; goto case 9;
+                case 9: k2 ^= (ulong)tail[start + 8] << 0; goto case 8;
+                case 8: k1 ^= (ulong)tail[start + 7] << 56; goto case 7;
+                case 7: k1 ^= (ulong)tail[start + 6] << 48; goto case 6;
+                case 6: k1 ^= (ulong)tail[start + 5] << 40; goto case 5;
+                case 5: k1 ^= (ulong)tail[start + 4] << 32; goto case 4;
+                case 4: k1 ^= (ulong)tail[start + 3] << 24; goto case 3;
+                case 3: k1 ^= (ulong)tail[start + 2] << 16; goto case 2;
+                case 2: k1 ^= (ulong)tail[start + 1] << 8; goto case 1;
+                case 1: k1 ^= (ulong)tail[start] << 0; break;
             }
+
+            h2 = h2 ^ ((k2 * c2).RotateLeft(33) * c1);
+            h1 = h1 ^ ((k1 * c1).RotateLeft(31) * c2);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected override byte[] HashFinal()
         {
             ulong len = (ulong)Length;
@@ -157,24 +121,17 @@ namespace Murmur
                 {
                     ulong* r = (ulong*)h;
 
-                    *r++ = h1;
-                    *r = h2;
+                    r[0] = h1;
+                    r[1] = h2;
                 }
             }
 
             return result;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ulong fmix(ulong k)
         {
-            // original algorithm
-            //k ^= k >> 33;
-            //k *= 0xff51afd7ed558ccdL;
-            //k ^= k >> 33;
-            //k *= 0xc4ceb9fe1a85ec53L;
-            //k ^= k >> 33;
-
-            // pipelining optimized algorithm
             k = (k ^ (k >> 33)) * 0xff51afd7ed558ccdL;
             k = (k ^ (k >> 33)) * 0xc4ceb9fe1a85ec53L;
             k ^= k >> 33;
