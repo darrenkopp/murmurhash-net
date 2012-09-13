@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Murmur;
 using System.Security.Cryptography;
+using System.IO;
 
 namespace MurmurRunner
 {
@@ -30,21 +31,38 @@ namespace MurmurRunner
 
             using (OutputWriter.Indent(2))
             {
-                Run(name: "Guid x 8", dataLength: SampleData.LongLength, hasher: a => a.ComputeHash(SampleData), steps: new Dictionary<string, Tuple<HashAlgorithm, int>> 
+                // guid output
+                var guidSteps = new Dictionary<string, Tuple<HashAlgorithm, int>> 
                 {
                     { "Murmur 128 Managed", Tuple.Create(Managed, FAST_ITERATION_COUNT) },    
                     { "Murmur 128 Unmanaged", Tuple.Create(Unmanaged, FAST_ITERATION_COUNT) },
                     { "SHA1", Tuple.Create(Sha1, SLOW_ITERATION_COUNT) },
                     { "MD5", Tuple.Create(Md5, SLOW_ITERATION_COUNT) }
-                });
+                };
 
-                Run(name: "Random", dataLength: RandomData.LongLength, hasher: a => a.ComputeHash(RandomData), steps: new Dictionary<string, Tuple<HashAlgorithm, int>> 
+                Run(name: "Guid x 8", dataLength: SampleData.LongLength, hasher: a => a.ComputeHash(SampleData), steps: guidSteps);
+
+                // random data tests
+                var randomSteps = new Dictionary<string, Tuple<HashAlgorithm, int>> 
                 {
                     { "Murmur 128 Managed", Tuple.Create(Managed, 2999) },    
                     { "Murmur 128 Unmanaged", Tuple.Create(Unmanaged, 2999) },
                     { "SHA1", Tuple.Create(Sha1, 2999) },
                     { "MD5", Tuple.Create(Md5, 2999) }
-                });
+                };
+
+                Run(name: "Random", dataLength: RandomData.LongLength, hasher: a => a.ComputeHash(RandomData), steps: randomSteps);
+
+                using (var stream = new MemoryStream(RandomData))
+                {
+                    Func<HashAlgorithm,byte[]> streamhasher = a =>
+                    {
+                        stream.Position = 0L;
+                        return a.ComputeHash(stream);
+                    };
+
+                    Run(name: "Stream", dataLength: stream.Length, hasher: streamhasher, steps: randomSteps);
+                }
             }
 
             if (Debugger.IsAttached)
@@ -54,7 +72,7 @@ namespace MurmurRunner
             }
         }
 
-        private static void Run(string name, long dataLength, Func<HashAlgorithm,byte[]> hasher, Dictionary<string, Tuple<HashAlgorithm, int>> steps)
+        private static void Run(string name, long dataLength, Func<HashAlgorithm, byte[]> hasher, Dictionary<string, Tuple<HashAlgorithm, int>> steps)
         {
             OutputWriter.WriteLine("* Data Set: {0}", name);
             using (OutputWriter.Indent())

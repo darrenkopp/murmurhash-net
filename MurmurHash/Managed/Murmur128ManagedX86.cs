@@ -53,13 +53,8 @@ namespace Murmur
         private void Body(byte[] data, int count)
         {
             int offset = 0;
-            //byte[] k1b = new byte[4],
-            //       k2b = new byte[4],
-            //       k3b = new byte[4],
-            //       k4b = new byte[4];
 
             // grab reference to the end of our data as uint blocks
-            //for (int i = 0; i < count; i++)
             while (count-- > 0)
             {
                 // get our values
@@ -175,9 +170,23 @@ namespace Murmur
             uint len = (uint)Length;
 
             // original algorithm
+            //h1 ^= len; h2 ^= len; h3 ^= len; h4 ^= len;
+
+            //h1 += h2; h1 += h3; h1 += h4;
+            //h2 += h1; h3 += h1; h4 += h1;
+
+            //h1 = fmix(h1);
+            //h2 = fmix(h2);
+            //h3 = fmix(h3);
+            //h4 = fmix(h4);
+
+            //h1 += h2; h1 += h3; h1 += h4;
+            //h2 += h1; h3 += h1; h4 += h1;
+
+            // pipelining friendly algorithm
             h1 ^= len; h2 ^= len; h3 ^= len; h4 ^= len;
 
-            h1 += h2; h1 += h3; h1 += h4;
+            h1 += (h2 + h3 + h4);
             h2 += h1; h3 += h1; h4 += h1;
 
             h1 = fmix(h1);
@@ -187,20 +196,6 @@ namespace Murmur
 
             h1 += h2; h1 += h3; h1 += h4;
             h2 += h1; h3 += h1; h4 += h1;
-
-            // pipelining friendly algorithm
-            //h1 ^= len; h2 ^= len; h3 ^= len; h4 ^= len;
-
-            //h1 += (h2 + h3 + h4);
-            //h2 += h1; h3 += h1; h4 += h1;
-
-            //h1 = fmix(h1);
-            //h2 = fmix(h2);
-            //h3 = fmix(h3);
-            //h4 = fmix(h4);
-
-            //h1 += (h2 + h3 + h4);
-            //h2 += h1; h3 += h1; h4 += h1;
 
             var result = new byte[16];
             Array.Copy(BitConverter.GetBytes(h1), 0, result, 0, 4);
