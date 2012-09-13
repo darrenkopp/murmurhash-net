@@ -35,93 +35,106 @@ namespace Murmur
             if (Length > 0)
             {
                 // calculate how many 16 byte segments we have
-                var blockCount = (Length / 16);
+                int remainder;
+                int count = Math.DivRem(Length, 16, out remainder);
+                //var count = (Length / 16);
+                //var remainder = (Length & 15);
+
                 unsafe
                 {
                     // grab pointer to first byte in array
                     fixed (byte* data = &array[0])
                     {
-                        Body(data, blockCount);
-                        Tail(data + (blockCount * 16));
+                        byte* end = data + Length;
+                        byte* blockEnd = end - remainder;
+
+                        Body((ulong*)data, (ulong*)blockEnd);
+
+                        // run tail computation if we have a remainder
+                        if (remainder > 0)
+                            Tail(end, remainder);
                     }
                 }
             }
         }
 
-        unsafe private void Body(byte* data, int blockCount)
+        unsafe private void Body(ulong* blocks, ulong* end)
         {
-            int offset = 0;
-            ulong* blocks = (ulong*)(data);
-            for (int i = 0; i < blockCount; i++)
+            while (blocks < end)
             {
-                ulong k1 = blocks[offset++], k2 = blocks[offset++];
+                ulong k1 = *(blocks++), k2 = *(blocks++);
 
-                k1 *= c1; k1 = (k1 << 31 | k1 >> 33); k1 *= c2; h1 ^= k1;
+                // original algorithm
+                //k1 *= c1; k1 = (k1 << 31 | k1 >> 33); k1 *= c2; h1 ^= k1;
+                //h1 = (h1 << 27 | h1 >> 37); h1 += h2; h1 = h1 * 5 + 0x52dce729;
+                //k2 *= c2; k2 = (k2 << 33 | k2 >> 31); k2 *= c1; h2 ^= k2;
+                //h2 = (h2 << 31 | h2 >> 33); h2 += h1; h2 = h2 * 5 + 0x38495ab5;
 
-                h1 = (h1 << 27 | h1 >> 37); h1 += h2; h1 = h1 * 5 + 0x52dce729;
+                // pipelining optimized algorithm
+                h1 = h1 ^ (((k1 * c1) << 31 | (k1 * c1) >> 33) * c2);
+                h1 = ((h1 << 27 | h1 >> 37) + h2) * 5 + 0x52dce729;
 
-                k2 *= c2; k2 = (k2 << 33 | k2 >> 31); k2 *= c1; h2 ^= k2;
-
-                h2 = (h2 << 31 | h2 >> 33); h2 += h1; h2 = h2 * 5 + 0x38495ab5;
+                h2 = h2 ^ (((k2 * c2) << 33 | (k2 * c2) >> 31) * c1);
+                h2 = ((h2 << 31 | h2 >> 33) + h1) * 5 + 0x38495ab5;
             }
         }
 
-        unsafe private void Tail(byte* tail)
+        unsafe private void Tail(byte* tail, int remainder)
         {
             // create our keys and initialize to 0
             ulong k1 = 0, k2 = 0;
 
             // determine how many bytes we have left to work with based on length
-            switch (Length & 15)
+            switch (remainder)
             {
                 case 15:
-                    k2 ^= (ulong)tail[14] << 48;
+                    k2 ^= ((ulong)*tail--) << 48;
                     goto case 14;
                 case 14:
-                    k2 ^= (ulong)tail[13] << 40;
+                    k2 ^= ((ulong)*tail--) << 40;
                     goto case 13;
                 case 13:
-                    k2 ^= (ulong)tail[12] << 32;
+                    k2 ^= ((ulong)*tail--) << 32;
                     goto case 12;
                 case 12:
-                    k2 ^= (ulong)tail[11] << 24;
+                    k2 ^= ((ulong)*tail--) << 24;
                     goto case 11;
                 case 11:
-                    k2 ^= (ulong)tail[10] << 16;
+                    k2 ^= ((ulong)*tail--) << 16;
                     goto case 10;
                 case 10:
-                    k2 ^= (ulong)tail[9] << 8;
+                    k2 ^= ((ulong)*tail--) << 8;
                     goto case 9;
                 case 9:
-                    k2 ^= (ulong)tail[8] << 0;
-                    k2 *= c2; k2  = (k2 << 33 | k2 >> 31); k2 *= c1; h2 ^= k2;
+                    k2 ^= ((ulong)*tail--) << 0;
+                    h2 = h2 ^ (((k2 * c2) << 33 | (k2 * c2) >> 31) * c1);
                     goto case 8;
                 case 8:
-                    k1 ^= (ulong)tail[7] << 56;
+                    k1 ^= ((ulong)*tail--) << 56;
                     goto case 7;
                 case 7:
-                    k1 ^= (ulong)tail[6] << 48;
+                    k1 ^= ((ulong)*tail--) << 48;
                     goto case 6;
                 case 6:
-                    k1 ^= (ulong)tail[5] << 40;
+                    k1 ^= ((ulong)*tail--) << 40;
                     goto case 5;
                 case 5:
-                    k1 ^= (ulong)tail[4] << 32;
+                    k1 ^= ((ulong)*tail--) << 32;
                     goto case 4;
                 case 4:
-                    k1 ^= (ulong)tail[3] << 24;
+                    k1 ^= ((ulong)*tail--) << 24;
                     goto case 3;
                 case 3:
-                    k1 ^= (ulong)tail[2] << 16;
+                    k1 ^= ((ulong)*tail--) << 16;
                     goto case 2;
                 case 2:
-                    k1 ^= (ulong)tail[1] << 8;
+                    k1 ^= ((ulong)*tail--) << 8;
                     goto case 1;
                 case 1:
-                    k1 ^= (ulong)tail[0] << 0;
-                    k1 *= c1; k1  = (k1 << 31 | k1 >> 33); k1 *= c2; h1 ^= k1;
-                    return;
-                default: return;
+                    k1 ^= ((ulong)*tail--) << 0;
+                    h1 = h1 ^ (((k1 * c1) << 31 | (k1 * c1) >> 33) * c2);
+                    break;
+                //default: break;
             }
         }
 
@@ -139,30 +152,33 @@ namespace Murmur
             h1 += h2;
             h2 += h1;
 
-            // eh? do i initialize this... or what...
             var result = new byte[16];
-            Array.Copy(BitConverter.GetBytes(h1), 0, result, 0, 8);
-            Array.Copy(BitConverter.GetBytes(h2), 0, result, 8, 8);
-            //unsafe
-            //{
-            //    fixed (byte* h = result)
-            //    {
-            //        ulong* r = (ulong*)h;
+            unsafe
+            {
+                fixed (byte* h = result)
+                {
+                    ulong* r = (ulong*)h;
 
-            //        r[0] = h1;
-            //        r[1] = h2;
-            //    }
-            //}
+                    *r++ = h1;
+                    *r = h2;
+                }
+            }
 
             return result;
         }
 
         private static ulong fmix(ulong k)
         {
-            k ^= k >> 33;
-            k *= 0xff51afd7ed558ccdL;
-            k ^= k >> 33;
-            k *= 0xc4ceb9fe1a85ec53L;
+            // original algorithm
+            //k ^= k >> 33;
+            //k *= 0xff51afd7ed558ccdL;
+            //k ^= k >> 33;
+            //k *= 0xc4ceb9fe1a85ec53L;
+            //k ^= k >> 33;
+
+            // pipelining optimized algorithm
+            k = (k ^ (k >> 33)) * 0xff51afd7ed558ccdL;
+            k = (k ^ (k >> 33)) * 0xc4ceb9fe1a85ec53L;
             k ^= k >> 33;
 
             return k;
