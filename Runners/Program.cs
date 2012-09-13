@@ -25,7 +25,6 @@ namespace MurmurRunner
 
         static void Main(string[] args)
         {
-            OutputWriter.WriteLine("{0}", GetHashAsString(System.IO.File.ReadAllBytes(@"c:\users\dkopp\documents\hash.bin")));
             OutputWriter.WriteLine("* Environment Architecture: {0}", Environment.Is64BitProcess ? "x64" : "x86");
             OutputWriter.NewLines(1);
 
