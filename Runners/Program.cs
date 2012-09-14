@@ -14,6 +14,9 @@ namespace MurmurRunner
     {
         static readonly HashAlgorithm Unmanaged = MurmurHash.Create128(managed: false);
         static readonly HashAlgorithm Managed = MurmurHash.Create128(managed: true);
+        static readonly HashAlgorithm Unmanaged32 = MurmurHash.Create32(managed: false);
+        static readonly HashAlgorithm Managed32 = MurmurHash.Create32(managed: true);
+
         static readonly HashAlgorithm Sha1 = SHA1Managed.Create();
         static readonly HashAlgorithm Md5 = MD5.Create();
 
@@ -33,6 +36,8 @@ namespace MurmurRunner
                 // guid output
                 var guidSteps = new Dictionary<string, Tuple<HashAlgorithm, int>> 
                 {
+                    { "Murmur 32 Managed", Tuple.Create(Managed32, FAST_ITERATION_COUNT) },
+                    { "Murmur 32 Unanaged", Tuple.Create(Unmanaged32, FAST_ITERATION_COUNT) },
                     { "Murmur 128 Managed", Tuple.Create(Managed, FAST_ITERATION_COUNT) },    
                     { "Murmur 128 Unmanaged", Tuple.Create(Unmanaged, FAST_ITERATION_COUNT) },
                     { "SHA1", Tuple.Create(Sha1, SLOW_ITERATION_COUNT) },
@@ -44,6 +49,8 @@ namespace MurmurRunner
                 // random data tests
                 var randomSteps = new Dictionary<string, Tuple<HashAlgorithm, int>> 
                 {
+                    { "Murmur 32 Managed", Tuple.Create(Managed32, 2999) },
+                    { "Murmur 32 Unanaged", Tuple.Create(Unmanaged32, 2999) },
                     { "Murmur 128 Managed", Tuple.Create(Managed, 2999) },    
                     { "Murmur 128 Unmanaged", Tuple.Create(Unmanaged, 2999) },
                     { "SHA1", Tuple.Create(Sha1, 2999) },

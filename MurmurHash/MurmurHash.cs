@@ -8,9 +8,12 @@ namespace Murmur
 {
     public static class MurmurHash
     {
-        public static HashAlgorithm Create32(uint seed = 0)
+        public static Murmur32 Create32(uint seed = 0, bool managed = true)
         {
-            return null;
+            if (managed)
+                return new Murmur32ManagedX86(seed);
+
+            return new Murmur32UnmanagedX86(seed);
         }
 
         public static Murmur128 Create128(uint seed = 0, bool managed = true)

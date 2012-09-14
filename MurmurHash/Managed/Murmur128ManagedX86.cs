@@ -120,10 +120,10 @@ namespace Murmur
             h1 += (h2 + h3 + h4);
             h2 += h1; h3 += h1; h4 += h1;
 
-            h1 = fmix(h1);
-            h2 = fmix(h2);
-            h3 = fmix(h3);
-            h4 = fmix(h4);
+            h1 = h1.FMix();
+            h2 = h2.FMix();
+            h3 = h3.FMix();
+            h4 = h4.FMix();
 
             h1 += (h2 + h3 + h4);
             h2 += h1; h3 += h1; h4 += h1;
