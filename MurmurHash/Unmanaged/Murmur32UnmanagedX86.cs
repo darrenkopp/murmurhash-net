@@ -23,7 +23,7 @@ namespace Murmur
 {
     internal class Murmur32UnmanagedX86 : Murmur32
     {
-        public Murmur32UnmanagedX86(uint seed = 0) : base(seed: seed) { }
+        public Murmur32UnmanagedX86(uint seed = 0) : base(seed) { }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected override void HashCore(byte[] data, int offset, int blocks, int remainder)
@@ -38,7 +38,7 @@ namespace Murmur
                     {
                         // grab our 4 byte key segments, stepping our offset position back each time
                         // thus we are walking our array backwards
-                        h1 = ((h1 ^ (((*b++ * c1).RotateLeft(15)) * c2)).RotateLeft(13)) * 5 + 0xe6546b64;
+                        H1 = (((H1 ^ (((*b++ * C1).RotateLeft(15)) * C2)).RotateLeft(13)) * 5) + 0xe6546b64;
                     }
 
                     if (remainder > 0)
@@ -61,7 +61,7 @@ namespace Murmur
                 case 1: k1 ^= (uint)tail[0]; break;
             }
 
-            h1 = h1 ^ ((k1 * c1).RotateLeft(15) * c2);
+            H1 = H1 ^ ((k1 * C1).RotateLeft(15) * C2);
         }
     }
 }

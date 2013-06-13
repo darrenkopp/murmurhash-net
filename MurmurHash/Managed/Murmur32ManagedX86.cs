@@ -13,17 +13,13 @@
 /// limitations under the License.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Murmur
 {
     internal class Murmur32ManagedX86 : Murmur32
     {
-        public Murmur32ManagedX86(uint seed = 0) : base(seed: seed) { }
+        public Murmur32ManagedX86(uint seed = 0) : base(seed) { }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected override void HashCore(byte[] data, int offset, int blocks, int remainder)
@@ -34,7 +30,7 @@ namespace Murmur
                 // get our values
                 uint k1 = BitConverter.ToUInt32(data, offset); offset += 4;
 
-                h1 = ((h1 ^ (((k1 * c1).RotateLeft(15)) * c2)).RotateLeft(13)) * 5 + 0xe6546b64;
+                H1 = (((H1 ^ (((k1 * C1).RotateLeft(15)) * C2)).RotateLeft(13)) * 5) + 0xe6546b64;
             }
 
             if (remainder > 0)
@@ -55,7 +51,7 @@ namespace Murmur
                 case 1: k1 ^= (uint)tail[position]; break;
             }
 
-            h1 = h1 ^ ((k1 * c1).RotateLeft(15) * c2);
+            H1 = H1 ^ ((k1 * C1).RotateLeft(15) * C2);
         }
     }
 }

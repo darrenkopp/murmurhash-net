@@ -122,8 +122,8 @@ namespace Murmur
             h1 += h2;
             h2 += h1;
 
-            h1 = fmix(h1);
-            h2 = fmix(h2);
+            h1 = h1.FMix();
+            h2 = h2.FMix();
 
             h1 += h2;
             h2 += h1;
