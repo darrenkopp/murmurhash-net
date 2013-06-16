@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="HashExpection.cs" />
     <Compile Include="HashVerifier.cs" />
+    <Compile Include="Murmur128Specs.cs" />
     <Compile Include="Murmur32Specs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
