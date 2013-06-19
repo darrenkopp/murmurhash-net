@@ -59,10 +59,6 @@ namespace Murmur
             H1 = (H1 ^ (uint)Length).FMix();
 
             return BitConverter.GetBytes(H1);
-            //var result = new byte[4];
-            //Array.Copy(BitConverter.GetBytes(H1), result, 4);
-
-            //return result;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

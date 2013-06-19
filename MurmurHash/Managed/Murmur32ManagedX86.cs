@@ -46,9 +46,9 @@ namespace Murmur
             // determine how many bytes we have left to work with based on length
             switch (remainder)
             {
-                case 3: k1 ^= (uint)tail[position + 2] << 16; goto case 2;
-                case 2: k1 ^= (uint)tail[position + 1] << 8; goto case 1;
-                case 1: k1 ^= (uint)tail[position]; break;
+                case 3: k1 ^= (uint)tail[position + 2] << 16;   goto case 2;
+                case 2: k1 ^= (uint)tail[position + 1] << 8;    goto case 1;
+                case 1: k1 ^= tail[position];                   break;
             }
 
             H1 = H1 ^ ((k1 * C1).RotateLeft(15) * C2);
