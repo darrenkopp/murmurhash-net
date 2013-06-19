@@ -39,19 +39,20 @@ namespace Murmur
         {
             // initialize hash values to seed values
             H1 = H2 = H3 = H4 = Seed;
+            Length = 0;
         }
 
         protected override void HashCore(byte[] array, int ibStart, int cbSize)
         {
             // store the length of the hash (for use later)
-            Length = cbSize;
+            Length += cbSize;
 
             // only compute the hash if we have data to hash
-            if (Length > 0)
+            if (cbSize > 0)
             {
                 // calculate how many 16 byte segments we have
-                var count = (Length / 16);
-                var remainder = (Length & 15);
+                var count = (cbSize / 16);
+                var remainder = (cbSize & 15);
 
                 Body(array, count, remainder);
             }

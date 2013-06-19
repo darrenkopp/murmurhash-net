@@ -37,19 +37,20 @@ namespace Murmur
         {
             // initialize hash values to seed values
             H1 = H2 = H3 = H4 = Seed;
+            Length = 0;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected override void HashCore(byte[] array, int ibStart, int cbSize)
         {
             // store the length of the hash (for use later)
-            Length = cbSize;
+            Length += cbSize;
 
             // only compute the hash if we have data to hash
-            if (Length > 0)
+            if (cbSize > 0)
             {
-                int count = Length / 16;
-                int remainder = Length & 15;
+                int count = cbSize / 16;
+                int remainder = cbSize & 15;
 
                 unsafe
                 {
@@ -58,7 +59,7 @@ namespace Murmur
                     {
                         Body(data, count);
                         if (remainder > 0)
-                            Tail(data + (Length - remainder), remainder);
+                            Tail(data + (cbSize - remainder), remainder);
                     }
                 }
             }
