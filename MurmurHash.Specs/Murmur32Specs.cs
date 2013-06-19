@@ -8,7 +8,7 @@ namespace Murmur.Specs
     {
         class given_a_managed_algorithm
         {
-            protected static readonly HashExpection Expectation = new HashExpection(32, 0xF9376EA7);
+            protected static readonly HashExpection Expectation = new HashExpection(32, 0xB0F57EE3);
             protected static uint VerificationHash;
 
             Establish context = () => VerificationHash = 0;
@@ -18,7 +18,7 @@ namespace Murmur.Specs
 
         class given_an_unmanaged_algorithm
         {
-            protected static readonly HashExpection Expectation = new HashExpection(32, 0xF9376EA7);
+            protected static readonly HashExpection Expectation = new HashExpection(32, 0xB0F57EE3);
             protected static uint VerificationHash;
 
             Establish context = () => VerificationHash = 0;
