@@ -45,51 +45,44 @@ namespace Murmur
         {
             // store the length of the hash (for use later)
             Length += cbSize;
-
-            // only compute the hash if we have data to hash
             if (cbSize > 0)
-            {
-                int count = cbSize / 16;
-                int remainder = cbSize & 15;
-
-                unsafe
-                {
-                    // grab pointer to first byte in array
-                    fixed (byte* data = &array[0])
-                    {
-                        Body(data, count);
-                        if (remainder > 0)
-                            Tail(data + (cbSize - remainder), remainder);
-                    }
-                }
-            }
+                Body(array, ibStart, cbSize);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        unsafe private void Body(byte* data, int count)
+        private void Body(byte[] data, int start, int length)
         {
-            // grab a reference to blocks
-            uint* blocks = (uint*)data;
-            while (count-- > 0)
+            int remainder = length & 15;
+            int blocks = length / 16;
+
+            unsafe
             {
-                // grab our 4 byte key segments, stepping our offset position back each time
-                // thus we are walking our array backwards
-                uint k1 = *blocks++,
-                     k2 = *blocks++,
-                     k3 = *blocks++,
-                     k4 = *blocks++;
+                fixed (byte* d = &data[start])
+                {
+                    // grab a reference to blocks
+                    uint* b = (uint*)d;
+                    while (blocks-- > 0)
+                    {
+                        // K1 - consume first integer
+                        H1 = H1 ^ ((*b++ * C1).RotateLeft(15) * C2);
+                        H1 = (H1.RotateLeft(19) + H2) * 5 + 0x561ccd1b;
 
-                H1 = H1 ^ ((k1 * C1).RotateLeft(15) * C2);
-                H1 = (H1.RotateLeft(19) + H2) * 5 + 0x561ccd1b;
+                        // K2 - consume second integer
+                        H2 = H2 ^ ((*b++ * C2).RotateLeft(16) * C3);
+                        H2 = (H2.RotateLeft(17) + H3) * 5 + 0x0bcaa747;
 
-                H2 = H2 ^ ((k2 * C2).RotateLeft(16) * C3);
-                H2 = (H2.RotateLeft(17) + H3) * 5 + 0x0bcaa747;
+                        // K3 - consume third integer
+                        H3 = H3 ^ ((*b++ * C3).RotateLeft(17) * C4);
+                        H3 = (H3.RotateLeft(15) + H4) * 5 + 0x96cd1c35;
 
-                H3 = H3 ^ ((k3 * C3).RotateLeft(17) * C4);
-                H3 = (H3.RotateLeft(15) + H4) * 5 + 0x96cd1c35;
+                        // K4 - consume fourth integer
+                        H4 = H4 ^ ((*b++ * C4).RotateLeft(18) * C1);
+                        H4 = (H4.RotateLeft(13) + H1) * 5 + 0x32ac3b17;
+                    }
 
-                H4 = H4 ^ ((k4 * C4).RotateLeft(18) * C1);
-                H4 = (H4.RotateLeft(13) + H1) * 5 + 0x32ac3b17;
+                    if (remainder > 0)
+                        Tail(d + (length - remainder), remainder);
+                }
             }
         }
 
