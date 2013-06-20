@@ -52,18 +52,13 @@ namespace Murmur
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Body(byte[] data, int length)
         {
-            int remaining = length;
-            int position = 0;
-            while (remaining >= 16)
+            int remaining = length & 15;
+            int aligned_length = length - remaining;
+            for (int i = 0; i < aligned_length; i += 16)
             {
-                // read our long values and increment our position by 8 bytes each time
-                ulong k1 = BitConverter.ToUInt64(data, position); position += 8;
-                ulong k2 = BitConverter.ToUInt64(data, position); position += 8;
+                ulong k1 = BitConverter.ToUInt64(data, i);
+                ulong k2 = BitConverter.ToUInt64(data, i + 8);
 
-                // subtract 16 bytes from our remaining count
-                remaining -= 16;
-
-                // run our hashing algorithm
                 H1 = H1 ^ ((k1 * C1).RotateLeft(31) * C2);
                 H1 = (H1.RotateLeft(27) + H2) * 5 + 0x52dce729;
 
@@ -71,9 +66,8 @@ namespace Murmur
                 H2 = (H2.RotateLeft(31) + H1) * 5 + 0x38495ab5;
             }
 
-            // if we still have bytes left over, run tail algorithm
             if (remaining > 0)
-                Tail(data, position, remaining);
+                Tail(data, aligned_length, remaining);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
