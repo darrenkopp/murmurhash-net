@@ -23,23 +23,23 @@ namespace Murmur
         protected const uint C1 = 0xcc9e2d51;
         protected const uint C2 = 0x1b873593;
 
-        protected readonly uint Seed;
+        private readonly uint _Seed;
 
         protected Murmur32(uint seed = 0)
         {
-            Seed = seed;
+            _Seed = seed;
         }
+        public override int HashSize { get { return 32; } }
+        public uint Seed { get { return _Seed; } }
 
         protected uint H1 { get; set; }
 
         protected int Length { get; set; }
 
-        public override int HashSize { get { return 32; } }
-
         public override void Initialize()
         {
             // Initialize our base value to the seed
-            H1 = Seed;
+            H1 = _Seed;
         }
 
         protected override void HashCore(byte[] array, int ibStart, int cbSize)
