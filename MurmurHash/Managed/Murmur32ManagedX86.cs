@@ -21,8 +21,20 @@ namespace Murmur
     {
         public Murmur32ManagedX86(uint seed = 0) : base(seed) { }
 
+        protected override void HashCore(byte[] array, int ibStart, int cbSize)
+        {
+            Length += cbSize;
+            if (cbSize > 0)
+            {
+                var blocks = (cbSize / 4);
+                var remainder = (cbSize & 3);
+
+                Body(array, ibStart, blocks, remainder);
+            }
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override void HashCore(byte[] data, int offset, int blocks, int remainder)
+        private void Body(byte[] data, int offset, int blocks, int remainder)
         {
             // grab reference to the end of our data as uint blocks
             while (blocks-- > 0)

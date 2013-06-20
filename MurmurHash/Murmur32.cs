@@ -44,26 +44,11 @@ namespace Murmur
             Length = 0;
         }
 
-        protected override void HashCore(byte[] array, int ibStart, int cbSize)
-        {
-            Length += cbSize;
-            if (cbSize > 0)
-            {
-                var blocks = (cbSize / 4);
-                var remainder = (cbSize & 3);
-
-                HashCore(array, ibStart, blocks, remainder);
-            }
-        }
-
         protected override byte[] HashFinal()
         {
             H1 = (H1 ^ (uint)Length).FMix();
 
             return BitConverter.GetBytes(H1);
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected abstract void HashCore(byte[] data, int offset, int blocks, int remainder);
     }
 }

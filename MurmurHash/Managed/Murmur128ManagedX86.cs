@@ -49,13 +49,7 @@ namespace Murmur
 
             // only compute the hash if we have data to hash
             if (cbSize > 0)
-            {
-                // calculate how many 16 byte segments we have
-                //var count = (cbSize / 16);
-                //var remainder = (cbSize & 15);
-
                 Body(array, cbSize);
-            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
