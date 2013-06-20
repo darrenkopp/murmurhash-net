@@ -19,8 +19,8 @@ namespace Murmur
 {
     internal class Murmur128ManagedX64 : Murmur128
     {
-        const ulong C1 = 0x87c37b91114253d5L;
-        const ulong C2 = 0x4cf5ad432745937fL;
+        const ulong C1 = 0x87c37b91114253d5;
+        const ulong C2 = 0x4cf5ad432745937f;
 
         internal Murmur128ManagedX64(uint seed = 0)
             : base(seed)
