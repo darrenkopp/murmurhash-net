@@ -13,7 +13,6 @@
 /// limitations under the License.
 
 using System;
-using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 
 namespace Murmur
@@ -25,7 +24,7 @@ namespace Murmur
 
         private readonly uint _Seed;
 
-        protected Murmur32(uint seed = 0)
+        protected Murmur32(uint seed)
         {
             _Seed = seed;
         }
