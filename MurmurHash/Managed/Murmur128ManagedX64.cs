@@ -53,8 +53,8 @@ namespace Murmur
         private void Body(byte[] data, int length)
         {
             int remaining = length & 15;
-            int aligned_length = length - remaining;
-            for (int i = 0; i < aligned_length; i += 16)
+            int alignedLength = length - remaining;
+            for (int i = 0; i < alignedLength; i += 16)
             {
                 ulong k1 = BitConverter.ToUInt64(data, i);
                 ulong k2 = BitConverter.ToUInt64(data, i + 8);
@@ -67,7 +67,7 @@ namespace Murmur
             }
 
             if (remaining > 0)
-                Tail(data, aligned_length, remaining);
+                Tail(data, alignedLength, remaining);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
