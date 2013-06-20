@@ -47,7 +47,7 @@ namespace Murmur
         protected override void HashCore(byte[] array, int ibStart, int cbSize)
         {
             Length += cbSize;
-            if (Length > 0)
+            if (cbSize > 0)
             {
                 var blocks = (cbSize / 4);
                 var remainder = (cbSize & 3);
