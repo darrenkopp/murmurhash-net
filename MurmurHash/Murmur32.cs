@@ -29,6 +29,7 @@ namespace Murmur
         {
             _Seed = seed;
         }
+
         public override int HashSize { get { return 32; } }
         public uint Seed { get { return _Seed; } }
 
@@ -39,16 +40,17 @@ namespace Murmur
         public override void Initialize()
         {
             // Initialize our base value to the seed
-            H1 = _Seed;
+            H1 = Seed;
+            Length = 0;
         }
 
         protected override void HashCore(byte[] array, int ibStart, int cbSize)
         {
-            Length = cbSize;
+            Length += cbSize;
             if (Length > 0)
             {
-                var blocks = (Length / 4);
-                var remainder = (Length & 3);
+                var blocks = (cbSize / 4);
+                var remainder = (cbSize & 3);
 
                 HashCore(array, ibStart, blocks, remainder);
             }
