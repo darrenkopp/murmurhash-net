@@ -19,10 +19,10 @@ namespace Murmur
 {
     internal class Murmur128ManagedX86 : Murmur128
     {
-        const uint C1 = 0x239b961b;
-        const uint C2 = 0xab0e9789;
-        const uint C3 = 0x38b34ae5;
-        const uint C4 = 0xa1e38b93;
+        const uint C1 = 0x239b961bU;
+        const uint C2 = 0xab0e9789U;
+        const uint C3 = 0x38b34ae5U;
+        const uint C4 = 0xa1e38b93U;
 
         internal Murmur128ManagedX86(uint seed = 0)
             : base(seed)
@@ -51,28 +51,24 @@ namespace Murmur
             if (cbSize > 0)
             {
                 // calculate how many 16 byte segments we have
-                var count = (cbSize / 16);
-                var remainder = (cbSize & 15);
+                //var count = (cbSize / 16);
+                //var remainder = (cbSize & 15);
 
-                Body(array, count, remainder);
+                Body(array, cbSize);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Body(byte[] data, int count, int remainder)
+        private void Body(byte[] data, int length)
         {
-            int offset = 0;
-
-            // grab reference to the end of our data as uint blocks
-            while (count-- > 0)
+            int remaining = length & 15;
+            int alignedLength = length - remaining;
+            for (int i = 0; i < alignedLength; i += 16)
             {
-                // get our values
-                uint k1 = BitConverter.ToUInt32(data, offset),
-                     k2 = BitConverter.ToUInt32(data, offset + 4),
-                     k3 = BitConverter.ToUInt32(data, offset + 8),
-                     k4 = BitConverter.ToUInt32(data, offset + 12);
-
-                offset += 16;
+                uint k1 = BitConverter.ToUInt32(data, i),
+                     k2 = BitConverter.ToUInt32(data, i + 4),
+                     k3 = BitConverter.ToUInt32(data, i + 8),
+                     k4 = BitConverter.ToUInt32(data, i + 12);
 
                 H1 = H1 ^ ((k1 * C1).RotateLeft(15) * C2);
                 H1 = (H1.RotateLeft(19) + H2) * 5 + 0x561ccd1b;
@@ -87,8 +83,8 @@ namespace Murmur
                 H4 = (H4.RotateLeft(13) + H1) * 5 + 0x32ac3b17;
             }
 
-            if (remainder > 0)
-                Tail(data, offset, remainder);
+            if (remaining > 0)
+                Tail(data, alignedLength, remaining);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
