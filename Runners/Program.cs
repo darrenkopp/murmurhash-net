@@ -111,7 +111,7 @@ namespace MurmurRunner
                 var timer = Execute(algorithm, iterations, referenceHash, hasher);
 
                 // results
-                WriteProfilingResult("Length", "{0}", dataLength);
+                WriteProfilingResult("Length", "{0}   ", dataLength);
                 WriteProfilingResult("Duration", "{0:N0} ms ({1:N0} ticks)", timer.ElapsedMilliseconds, timer.ElapsedTicks);
                 WriteProfilingResult("Ops/Tick", "{0:N3}", Divide(iterations, timer.ElapsedTicks));
                 WriteProfilingResult("Ops/ms", "{0:N3}", Divide(iterations, timer.ElapsedMilliseconds));
