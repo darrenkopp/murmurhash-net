@@ -24,21 +24,19 @@ namespace Murmur
         {
             Length += cbSize;
             if (cbSize > 0)
-            {
-                var blocks = (cbSize / 4);
-                var remainder = (cbSize & 3);
-
-                Body(array, ibStart, blocks, remainder);
-            }
+                Body(array, ibStart, cbSize);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Body(byte[] data, int offset, int blocks, int remainder)
+        private void Body(byte[] data, int start, int length)
         {
+            int remainder = length & 3;
+            int blocks = length / 4;
+
             unsafe
             {
                 // grab pointer to first byte in array
-                fixed (byte* d = data)
+                fixed (byte* d = &data[start])
                 {
                     uint* b = (uint*)d;
                     while (blocks-- > 0)
@@ -49,7 +47,7 @@ namespace Murmur
                     }
 
                     if (remainder > 0)
-                        Tail(d + offset, remainder);
+                        Tail(d + (length - remainder), remainder);
                 }
             }
         }
@@ -63,9 +61,9 @@ namespace Murmur
             // determine how many bytes we have left to work with based on length
             switch (remainder)
             {
-                case 3: k1 ^= (uint)tail[2] << 16;  goto case 2;
-                case 2: k1 ^= (uint)tail[1] << 8;   goto case 1;
-                case 1: k1 ^= tail[0];              break;
+                case 3: k1 ^= (uint)tail[2] << 16; goto case 2;
+                case 2: k1 ^= (uint)tail[1] << 8; goto case 1;
+                case 1: k1 ^= tail[0]; break;
             }
 
             H1 = H1 ^ ((k1 * C1).RotateLeft(15) * C2);
