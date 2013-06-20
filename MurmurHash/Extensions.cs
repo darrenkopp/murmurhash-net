@@ -22,14 +22,12 @@ namespace Murmur
         internal static uint RotateLeft(this uint x, byte r)
         {
             return (x << r) | (x >> (32 - r));
-            //return (x << r | x >> (32 - (r & 31)));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static ulong RotateLeft(this ulong x, byte r)
         {
             return (x << r) | (x >> (64 - r));
-            //return (x << r | x >> (64 - (r & 63)));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -38,9 +36,7 @@ namespace Murmur
             // pipelining friendly algorithm
             h = (h ^ (h >> 16)) * 0x85ebca6b;
             h = (h ^ (h >> 13)) * 0xc2b2ae35;
-            h ^= h >> 16;
-
-            return h;
+            return h ^ (h >> 16);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -49,9 +45,8 @@ namespace Murmur
             // pipelining friendly algorithm
             h = (h ^ (h >> 33)) * 0xff51afd7ed558ccd;
             h = (h ^ (h >> 33)) * 0xc4ceb9fe1a85ec53;
-            h ^= h >> 33;
 
-            return h;
+            return (h ^ (h >> 33));
         }
     }
 }
