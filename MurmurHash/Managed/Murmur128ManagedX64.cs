@@ -127,15 +127,5 @@ namespace Murmur
 
             return result;
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static ulong fmix(ulong k)
-        {
-            k = (k ^ (k >> 33)) * 0xff51afd7ed558ccdL;
-            k = (k ^ (k >> 33)) * 0xc4ceb9fe1a85ec53L;
-            k ^= k >> 33;
-
-            return k;
-        }
     }
 }
