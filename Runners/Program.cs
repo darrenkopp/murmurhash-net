@@ -45,6 +45,7 @@ namespace MurmurRunner
                 };
 
                 Run(name: "Guid x 8", dataLength: SampleData.LongLength, hasher: a => a.ComputeHash(SampleData), steps: guidSteps);
+                Run(name: "Guid x 8 Partial", dataLength: SampleData.LongLength - 3, hasher: a => a.ComputeHash(SampleData, 3, (int)(SampleData.LongLength - 3)), steps: guidSteps);
 
                 // random data tests
                 var randomSteps = new Dictionary<string, Tuple<HashAlgorithm, int>> 
