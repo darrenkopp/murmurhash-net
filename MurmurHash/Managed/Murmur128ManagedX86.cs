@@ -49,15 +49,15 @@ namespace Murmur
 
             // only compute the hash if we have data to hash
             if (cbSize > 0)
-                Body(array, cbSize);
+                Body(array, ibStart, cbSize);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Body(byte[] data, int length)
+        private void Body(byte[] data, int start, int length)
         {
-            int remaining = length & 15;
-            int alignedLength = length - remaining;
-            for (int i = 0; i < alignedLength; i += 16)
+            int remainder = length & 15;
+            int alignedLength = start + (length - remainder);
+            for (int i = start; i < alignedLength; i += 16)
             {
                 uint k1 = BitConverter.ToUInt32(data, i),
                      k2 = BitConverter.ToUInt32(data, i + 4),
@@ -77,8 +77,8 @@ namespace Murmur
                 H4 = (H4.RotateLeft(13) + H1) * 5 + 0x32ac3b17;
             }
 
-            if (remaining > 0)
-                Tail(data, alignedLength, remaining);
+            if (remainder > 0)
+                Tail(data, alignedLength, remainder);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
