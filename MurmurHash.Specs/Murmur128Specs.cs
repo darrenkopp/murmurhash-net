@@ -11,7 +11,7 @@ namespace Murmur.Specs
             protected static readonly HashExpection Expectation = new HashExpection(128, 0x6384BA69);
             protected static uint VerificationHash;
             Establish context = () => VerificationHash = 0;
-            Because of = () => VerificationHash = HashVerifier.ComputeVerificationHash(Expectation.Bits, seed => MurmurHash.Create128(seed, true));
+            Because of = () => VerificationHash = HashVerifier.ComputeVerificationHash(Expectation.Bits, seed => MurmurHash.Create128(seed, true, AlgorithmPreference.X64));
             It should_have_computed_correct_hash = () => VerificationHash.ShouldEqual(Expectation.Result);
         }
 
@@ -20,7 +20,25 @@ namespace Murmur.Specs
             protected static readonly HashExpection Expectation = new HashExpection(128, 0x6384BA69);
             protected static uint VerificationHash;
             Establish context = () => VerificationHash = 0;
-            Because of = () => VerificationHash = HashVerifier.ComputeVerificationHash(Expectation.Bits, seed => MurmurHash.Create128(seed, false));
+            Because of = () => VerificationHash = HashVerifier.ComputeVerificationHash(Expectation.Bits, seed => MurmurHash.Create128(seed, false, AlgorithmPreference.X64));
+            It should_have_computed_correct_hash = () => VerificationHash.ShouldEqual(Expectation.Result);
+        }
+
+        class given_a_managed_x86_algorithm
+        {
+            protected static readonly HashExpection Expectation = new HashExpection(128, 0xB3ECE62A);
+            protected static uint VerificationHash;
+            Establish context = () => VerificationHash = 0;
+            Because of = () => VerificationHash = HashVerifier.ComputeVerificationHash(Expectation.Bits, seed => MurmurHash.Create128(seed, true, AlgorithmPreference.X86));
+            It should_have_computed_correct_hash = () => VerificationHash.ShouldEqual(Expectation.Result);
+        }
+
+        class given_an_unmanaged_x86_algorithm
+        {
+            protected static readonly HashExpection Expectation = new HashExpection(128, 0xB3ECE62A);
+            protected static uint VerificationHash;
+            Establish context = () => VerificationHash = 0;
+            Because of = () => VerificationHash = HashVerifier.ComputeVerificationHash(Expectation.Bits, seed => MurmurHash.Create128(seed, false, AlgorithmPreference.X86));
             It should_have_computed_correct_hash = () => VerificationHash.ShouldEqual(Expectation.Result);
         }
 

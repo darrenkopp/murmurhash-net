@@ -27,6 +27,7 @@ namespace Murmur
         protected Murmur32(uint seed)
         {
             _Seed = seed;
+            Reset();
         }
 
         public override int HashSize { get { return 32; } }
@@ -36,11 +37,15 @@ namespace Murmur
 
         protected int Length { get; set; }
 
-        public override void Initialize()
+        private void Reset()
         {
-            // Initialize our base value to the seed
             H1 = Seed;
             Length = 0;
+        }
+
+        public override void Initialize()
+        {
+            Reset();
         }
 
         protected override byte[] HashFinal()

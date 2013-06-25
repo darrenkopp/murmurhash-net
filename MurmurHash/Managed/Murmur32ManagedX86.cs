@@ -19,13 +19,15 @@ namespace Murmur
 {
     internal class Murmur32ManagedX86 : Murmur32
     {
-        public Murmur32ManagedX86(uint seed = 0) : base(seed) { }
+        public Murmur32ManagedX86(uint seed = 0)
+            : base(seed)
+        {
+        }
 
         protected override void HashCore(byte[] array, int ibStart, int cbSize)
         {
             Length += cbSize;
-            if (cbSize > 0)
-                Body(array, ibStart, cbSize);
+            Body(array, ibStart, cbSize);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

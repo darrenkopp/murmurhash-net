@@ -25,6 +25,7 @@ namespace Murmur
         internal Murmur128UnmanagedX86(uint seed = 0)
             : base(seed)
         {
+            Reset();
         }
 
         private uint H1 { get; set; }
@@ -33,11 +34,16 @@ namespace Murmur
         private uint H4 { get; set; }
         private int Length { get; set; }
 
-        public override void Initialize()
+        private void Reset()
         {
             // initialize hash values to seed values
             H1 = H2 = H3 = H4 = Seed;
             Length = 0;
+        }
+
+        public override void Initialize()
+        {
+            Reset();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -45,8 +51,7 @@ namespace Murmur
         {
             // store the length of the hash (for use later)
             Length += cbSize;
-            if (cbSize > 0)
-                Body(array, ibStart, cbSize);
+            Body(array, ibStart, cbSize);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -95,21 +100,21 @@ namespace Murmur
             // determine how many bytes we have left to work with based on length
             switch (remainder)
             {
-                case 15: k4 ^= (uint)tail[14] << 16;    goto case 14;
-                case 14: k4 ^= (uint)tail[13] << 8;     goto case 13;
-                case 13: k4 ^= (uint)tail[12] << 0;     goto case 12;
-                case 12: k3 ^= (uint)tail[11] << 24;    goto case 11;
-                case 11: k3 ^= (uint)tail[10] << 16;    goto case 10;
-                case 10: k3 ^= (uint)tail[9] << 8;      goto case 9;
-                case 9: k3 ^= (uint)tail[8] << 0;       goto case 8;
-                case 8: k2 ^= (uint)tail[7] << 24;      goto case 7;
-                case 7: k2 ^= (uint)tail[6] << 16;      goto case 6;
-                case 6: k2 ^= (uint)tail[5] << 8;       goto case 5;
-                case 5: k2 ^= (uint)tail[4] << 0;       goto case 4;
-                case 4: k1 ^= (uint)tail[3] << 24;      goto case 3;
-                case 3: k1 ^= (uint)tail[2] << 16;      goto case 2;
-                case 2: k1 ^= (uint)tail[1] << 8;       goto case 1;
-                case 1: k1 ^= (uint)tail[0] << 0;       break;
+                case 15: k4 ^= (uint)tail[14] << 16; goto case 14;
+                case 14: k4 ^= (uint)tail[13] << 8; goto case 13;
+                case 13: k4 ^= (uint)tail[12] << 0; goto case 12;
+                case 12: k3 ^= (uint)tail[11] << 24; goto case 11;
+                case 11: k3 ^= (uint)tail[10] << 16; goto case 10;
+                case 10: k3 ^= (uint)tail[9] << 8; goto case 9;
+                case 9: k3 ^= (uint)tail[8] << 0; goto case 8;
+                case 8: k2 ^= (uint)tail[7] << 24; goto case 7;
+                case 7: k2 ^= (uint)tail[6] << 16; goto case 6;
+                case 6: k2 ^= (uint)tail[5] << 8; goto case 5;
+                case 5: k2 ^= (uint)tail[4] << 0; goto case 4;
+                case 4: k1 ^= (uint)tail[3] << 24; goto case 3;
+                case 3: k1 ^= (uint)tail[2] << 16; goto case 2;
+                case 2: k1 ^= (uint)tail[1] << 8; goto case 1;
+                case 1: k1 ^= (uint)tail[0] << 0; break;
             }
 
             H4 = H4 ^ ((k4 * C4).RotateLeft(18) * C1);
