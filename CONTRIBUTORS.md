@@ -1,1 +1,1 @@
-Ian Campbell ([@iamic](https://twitter.com/iamic)]
+Ian Campbell ([@iamic](https://twitter.com/iamic))
