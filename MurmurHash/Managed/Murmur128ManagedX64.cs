@@ -63,10 +63,10 @@ namespace Murmur
                 ulong k1 = BitConverter.ToUInt64(data, i);
                 ulong k2 = BitConverter.ToUInt64(data, i + 8);
 
-                H1 = H1 ^ ((k1 * C1).RotateLeft(31) * C2);
+                H1 ^= (k1 * C1).RotateLeft(31) * C2;
                 H1 = (H1.RotateLeft(27) + H2) * 5 + 0x52dce729;
 
-                H2 = H2 ^ ((k2 * C2).RotateLeft(33) * C1);
+                H2 ^= (k2 * C2).RotateLeft(33) * C1;
                 H2 = (H2.RotateLeft(31) + H1) * 5 + 0x38495ab5;
             }
 
@@ -100,8 +100,8 @@ namespace Murmur
                 case 1: k1 ^= (ulong)tail[start] << 0; break;
             }
 
-            H2 = H2 ^ ((k2 * C2).RotateLeft(33) * C1);
-            H1 = H1 ^ ((k1 * C1).RotateLeft(31) * C2);
+            H2 ^= (k2 * C2).RotateLeft(33) * C1;
+            H1 ^= (k1 * C1).RotateLeft(31) * C2;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

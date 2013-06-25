@@ -68,7 +68,7 @@ namespace Murmur
                 case 1: k1 ^= tail[0]; break;
             }
 
-            H1 = H1 ^ ((k1 * C1).RotateLeft(15) * C2);
+            H1 ^= (k1 * C1).RotateLeft(15) * C2;
         }
     }
 }

@@ -67,16 +67,16 @@ namespace Murmur
                      k3 = BitConverter.ToUInt32(data, i + 8),
                      k4 = BitConverter.ToUInt32(data, i + 12);
 
-                H1 = H1 ^ ((k1 * C1).RotateLeft(15) * C2);
+                H1 ^= (k1 * C1).RotateLeft(15) * C2;
                 H1 = (H1.RotateLeft(19) + H2) * 5 + 0x561ccd1b;
 
-                H2 = H2 ^ ((k2 * C2).RotateLeft(16) * C3);
+                H2 ^= (k2 * C2).RotateLeft(16) * C3;
                 H2 = (H2.RotateLeft(17) + H3) * 5 + 0x0bcaa747;
 
-                H3 = H3 ^ ((k3 * C3).RotateLeft(17) * C4);
+                H3 ^= (k3 * C3).RotateLeft(17) * C4;
                 H3 = (H3.RotateLeft(15) + H4) * 5 + 0x96cd1c35;
 
-                H4 = H4 ^ ((k4 * C4).RotateLeft(18) * C1);
+                H4 ^= (k4 * C4).RotateLeft(18) * C1;
                 H4 = (H4.RotateLeft(13) + H1) * 5 + 0x32ac3b17;
             }
 
@@ -110,10 +110,10 @@ namespace Murmur
                 case 1: k1 ^= (uint)tail[position] << 0; break;
             }
 
-            H4 = H4 ^ ((k4 * C4).RotateLeft(18) * C1);
-            H3 = H3 ^ ((k3 * C3).RotateLeft(17) * C4);
-            H2 = H2 ^ ((k2 * C2).RotateLeft(16) * C3);
-            H1 = H1 ^ ((k1 * C1).RotateLeft(15) * C2);
+            H4 ^= (k4 * C4).RotateLeft(18) * C1;
+            H3 ^= (k3 * C3).RotateLeft(17) * C4;
+            H2 ^= (k2 * C2).RotateLeft(16) * C3;
+            H1 ^= (k1 * C1).RotateLeft(15) * C2;
         }
 
         protected override byte[] HashFinal()
