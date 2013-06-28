@@ -6,6 +6,7 @@ namespace Murmur.Specs
 {
     class Murmur128Specs
     {
+        [Subject("Murmur128")]
         class given_a_managed_x64_algorithm
         {
             protected static readonly HashExpection Expectation = new HashExpection(128, 0x6384BA69);
@@ -15,6 +16,7 @@ namespace Murmur.Specs
             It should_have_computed_correct_hash = () => VerificationHash.ShouldEqual(Expectation.Result);
         }
 
+        [Subject("Murmur128")]
         class given_an_unmanaged_x64_algorithm
         {
             protected static readonly HashExpection Expectation = new HashExpection(128, 0x6384BA69);
@@ -24,6 +26,7 @@ namespace Murmur.Specs
             It should_have_computed_correct_hash = () => VerificationHash.ShouldEqual(Expectation.Result);
         }
 
+        [Subject("Murmur128")]
         class given_a_managed_x86_algorithm
         {
             protected static readonly HashExpection Expectation = new HashExpection(128, 0xB3ECE62A);
@@ -33,6 +36,7 @@ namespace Murmur.Specs
             It should_have_computed_correct_hash = () => VerificationHash.ShouldEqual(Expectation.Result);
         }
 
+        [Subject("Murmur128")]
         class given_an_unmanaged_x86_algorithm
         {
             protected static readonly HashExpection Expectation = new HashExpection(128, 0xB3ECE62A);
@@ -42,6 +46,7 @@ namespace Murmur.Specs
             It should_have_computed_correct_hash = () => VerificationHash.ShouldEqual(Expectation.Result);
         }
 
+        [Subject("Murmur128")]
         class given_a_managed_and_unmanaged_algorithm
         {
             protected static byte[] Input;

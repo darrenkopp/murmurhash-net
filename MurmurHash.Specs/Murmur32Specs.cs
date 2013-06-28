@@ -6,6 +6,7 @@ namespace Murmur.Specs
 {
     class Murmur32Specs
     {
+        [Subject("Murmur32")]
         class given_a_managed_algorithm
         {
             protected static readonly HashExpection Expectation = new HashExpection(32, 0xB0F57EE3);
@@ -16,6 +17,7 @@ namespace Murmur.Specs
             It should_have_created_a_valid_hash = () => VerificationHash.ShouldEqual(Expectation.Result);
         }
 
+        [Subject("Murmur32")]
         class given_an_unmanaged_algorithm
         {
             protected static readonly HashExpection Expectation = new HashExpection(32, 0xB0F57EE3);
@@ -26,6 +28,7 @@ namespace Murmur.Specs
             It should_have_created_a_valid_hash = () => VerificationHash.ShouldEqual(Expectation.Result);
         }
 
+        [Subject("Murmur32")]
         class given_a_managed_and_unmanaged_algorithm
         {
             protected static byte[] Input;
