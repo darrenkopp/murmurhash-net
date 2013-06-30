@@ -37,10 +37,7 @@ namespace Murmur
             int alignedLength = start + (length - remainder);
 
             for (int i = start; i < alignedLength; i += 4)
-            {
-                uint k1 = BitConverter.ToUInt32(data, i);
-                H1 = (((H1 ^ (((k1 * C1).RotateLeft(15)) * C2)).RotateLeft(13)) * 5) + 0xe6546b64;
-            }
+                H1 = (((H1 ^ (((data.ToUInt32(i) * C1).RotateLeft(15)) * C2)).RotateLeft(13)) * 5) + 0xe6546b64;
 
             if (remainder > 0)
                 Tail(data, alignedLength, remainder);

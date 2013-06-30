@@ -42,7 +42,7 @@ namespace Murmur
 
         public override void Initialize()
         {
-            Reset();   
+            Reset();
         }
 
         protected override void HashCore(byte[] array, int ibStart, int cbSize)
@@ -59,13 +59,10 @@ namespace Murmur
             int alignedLength = start + (length - remainder);
             for (int i = start; i < alignedLength; i += 16)
             {
-                ulong k1 = BitConverter.ToUInt64(data, i);
-                ulong k2 = BitConverter.ToUInt64(data, i + 8);
-
-                H1 ^= (k1 * C1).RotateLeft(31) * C2;
+                H1 ^= (data.ToUInt64(i) * C1).RotateLeft(31) * C2;
                 H1 = (H1.RotateLeft(27) + H2) * 5 + 0x52dce729;
 
-                H2 ^= (k2 * C2).RotateLeft(33) * C1;
+                H2 ^= (data.ToUInt64(i + 8) * C2).RotateLeft(33) * C1;
                 H2 = (H2.RotateLeft(31) + H1) * 5 + 0x38495ab5;
             }
 

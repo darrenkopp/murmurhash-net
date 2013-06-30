@@ -62,10 +62,10 @@ namespace Murmur
             int alignedLength = start + (length - remainder);
             for (int i = start; i < alignedLength; i += 16)
             {
-                uint k1 = BitConverter.ToUInt32(data, i),
-                     k2 = BitConverter.ToUInt32(data, i + 4),
-                     k3 = BitConverter.ToUInt32(data, i + 8),
-                     k4 = BitConverter.ToUInt32(data, i + 12);
+                uint k1 = data.ToUInt32(i),
+                     k2 = data.ToUInt32(i + 4),
+                     k3 = data.ToUInt32(i + 8),
+                     k4 = data.ToUInt32(i + 12);
 
                 H1 ^= (k1 * C1).RotateLeft(15) * C2;
                 H1 = (H1.RotateLeft(19) + H2) * 5 + 0x561ccd1b;
