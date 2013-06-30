@@ -41,12 +41,9 @@ namespace Murmur
                 fixed (byte* d = &data[start])
                 {
                     uint* b = (uint*)d;
+
                     while (blocks-- > 0)
-                    {
-                        // grab our 4 byte key segments, stepping our offset position back each time
-                        // thus we are walking our array backwards
                         H1 = (((H1 ^ (((*b++ * C1).RotateLeft(15)) * C2)).RotateLeft(13)) * 5) + 0xe6546b64;
-                    }
 
                     if (remainder > 0)
                         Tail(d + (length - remainder), remainder);

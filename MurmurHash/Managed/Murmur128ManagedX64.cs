@@ -49,7 +49,6 @@ namespace Murmur
         {
             // increment our length
             Length += cbSize;
-
             Body(array, ibStart, cbSize);
         }
 
@@ -104,7 +103,6 @@ namespace Murmur
             H1 ^= (k1 * C1).RotateLeft(31) * C2;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected override byte[] HashFinal()
         {
             ulong len = (ulong)Length;

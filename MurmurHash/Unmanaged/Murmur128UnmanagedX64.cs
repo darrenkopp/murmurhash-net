@@ -43,7 +43,6 @@ namespace Murmur
             Reset();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected override void HashCore(byte[] array, int ibStart, int cbSize)
         {
             // store the length of the hash (for use later)
@@ -109,7 +108,6 @@ namespace Murmur
             H1 ^= (k1 * C1).RotateLeft(31) * C2;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected override byte[] HashFinal()
         {
             ulong len = (ulong)Length;
