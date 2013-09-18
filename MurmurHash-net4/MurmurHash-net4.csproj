@@ -4,38 +4,32 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{5E240B61-4CCD-4C2A-A0F2-F545C5E9939C}</ProjectGuid>
+    <ProjectGuid>{B051568C-7D57-47CC-8195-B7F8F2C4A916}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Murmur</RootNamespace>
     <AssemblyName>MurmurHash</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;NETFX45</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;NETFX4</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;CODE_ANALYSIS;NETFX45</DefineConstants>
+    <DefineConstants>TRACE;NETFX4</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <Prefer32Bit>false</Prefer32Bit>
-    <RunCodeAnalysis>true</RunCodeAnalysis>
-    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -43,20 +37,41 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Extensions.cs" />
-    <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="Managed\Murmur128ManagedX64.cs" />
-    <Compile Include="Managed\Murmur32ManagedX86.cs" />
-    <Compile Include="Murmur128.cs" />
-    <Compile Include="Murmur32.cs" />
-    <Compile Include="MurmurHash.cs" />
+    <Compile Include="..\MurmurHash\Extensions.cs">
+      <Link>Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\MurmurHash\GlobalSuppressions.cs">
+      <Link>GlobalSuppressions.cs</Link>
+    </Compile>
+    <Compile Include="..\murmurhash\managed\Murmur128ManagedX64.cs">
+      <Link>Managed\Murmur128ManagedX64.cs</Link>
+    </Compile>
+    <Compile Include="..\murmurhash\managed\Murmur128ManagedX86.cs">
+      <Link>Managed\Murmur128ManagedX86.cs</Link>
+    </Compile>
+    <Compile Include="..\murmurhash\managed\Murmur32ManagedX86.cs">
+      <Link>Managed\Murmur32ManagedX86.cs</Link>
+    </Compile>
+    <Compile Include="..\MurmurHash\Murmur128.cs">
+      <Link>Murmur128.cs</Link>
+    </Compile>
+    <Compile Include="..\MurmurHash\Murmur32.cs">
+      <Link>Murmur32.cs</Link>
+    </Compile>
+    <Compile Include="..\MurmurHash\MurmurHash.cs">
+      <Link>MurmurHash.cs</Link>
+    </Compile>
+    <Compile Include="..\murmurhash\unmanaged\Murmur128UnmanagedX64.cs">
+      <Link>Unmanaged\Murmur128UnmanagedX64.cs</Link>
+    </Compile>
+    <Compile Include="..\murmurhash\unmanaged\Murmur128UnmanagedX86.cs">
+      <Link>Unmanaged\Murmur128UnmanagedX86.cs</Link>
+    </Compile>
+    <Compile Include="..\murmurhash\unmanaged\Murmur32UnmanagedX86.cs">
+      <Link>Unmanaged\Murmur32UnmanagedX86.cs</Link>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Managed\Murmur128ManagedX86.cs" />
-    <Compile Include="Unmanaged\Murmur128UnmanagedX64.cs" />
-    <Compile Include="Unmanaged\Murmur128UnmanagedX86.cs" />
-    <Compile Include="Unmanaged\Murmur32UnmanagedX86.cs" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -53,12 +53,23 @@ namespace Murmur
                 case AlgorithmPreference.X86: return factory32(seed);
                 default:
                 {
-                    if (Environment.Is64BitProcess)
+                    if (Is64BitProcess())
                         return factory64(seed);
 
                     return factory32(seed);
                 }
             }
+        }
+
+        static bool Is64BitProcess()
+        {
+#if NETFX45
+            return Environment.Is64BitProcess;
+#elif NETFX40 || NETFX35
+            return IntPtr.Size == 8;
+#else
+            return false;
+#endif
         }
     }
 }
