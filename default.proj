@@ -7,6 +7,10 @@
     <ReleaseDirectory>$(SourceDirectory)\release</ReleaseDirectory>
     <NuGetDirectory>$(SourceDirectory)\.nuget</NuGetDirectory>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <NugetPackageVersion>1.0.0</NugetPackageVersion>
+  </PropertyGroup>
   <Target Name="All">
     <CallTarget Targets="Compile" />
     <CallTarget Targets="CopyOutputToBuildDirectory" />
@@ -38,6 +42,6 @@
     <RemoveDir Condition=" Exists('$(ReleaseDirectory)') " Directories="$(ReleaseDirectory)" />
     <MakeDir Directories="$(ReleaseDirectory)" Condition=" !Exists('$(ReleaseDirectory)') " />
 
-    <Exec Command="$(NuGetDirectory)\NuGet.exe pack -OutputDirectory .\release" />
+    <Exec Command="$(NuGetDirectory)\NuGet.exe pack -OutputDirectory .\release -Version $(NugetPackageVersion)" />
   </Target>
 </Project>
