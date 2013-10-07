@@ -3,17 +3,20 @@
   <PropertyGroup>
     <Configuration Condition=" $(Configuration) == '' ">Release</Configuration>
     <SourceDirectory>$(MSBuildProjectDirectory)</SourceDirectory>
-    <BuildDirectory>$(MSBuildProjectDirectory)\build</BuildDirectory>
+    <BuildDirectory>$(SourceDirectory)\build</BuildDirectory>
+    <ReleaseDirectory>$(SourceDirectory)\release</ReleaseDirectory>
+    <NuGetDirectory>$(SourceDirectory)\.nuget</NuGetDirectory>
   </PropertyGroup>
   <Target Name="All">
     <CallTarget Targets="Compile" />
     <CallTarget Targets="CopyOutputToBuildDirectory" />
-    <!-- TODO: make a nupak -->
+    <CallTarget Targets="CreateNuGetPackage" />
   </Target>
 
   <Target Name="Compile">
     <MSBuild Projects="MurmurHash.sln" Targets="Build" Properties="Configuration=$(Configuration)" />
   </Target>
+  
   <Target Name="CopyOutputToBuildDirectory">
     <ItemGroup>
       <Net35OutputFiles Include="$(SourceDirectory)\*-net35\**\$(Configuration)\MurmurHash.dll" />
@@ -21,14 +24,20 @@
       <Net45OutputFiles Include="$(SourceDirectory)\MurmurHash\**\$(Configuration)\MurmurHash.dll" />
     </ItemGroup>
     <RemoveDir Condition=" Exists('$(BuildDirectory)') " Directories="$(BuildDirectory)" />
-    <MakeDir Directories="$(BuildDirectory)" />
-    <MakeDir Directories="$(BuildDirectory)\lib" />
-    <MakeDir Directories="$(BuildDirectory)\lib\net35" />
-    <MakeDir Directories="$(BuildDirectory)\lib\net40" />
-    <MakeDir Directories="$(BuildDirectory)\lib\net45" />
+    <MakeDir Condition=" !Exists('$(BuildDirectory)') " Directories="$(BuildDirectory)" />
+    <MakeDir Directories="$(BuildDirectory)\net35" />
+    <MakeDir Directories="$(BuildDirectory)\net40" />
+    <MakeDir Directories="$(BuildDirectory)\net45" />
 
-    <Copy SourceFiles="@(Net35OutputFiles)" DestinationFolder="$(BuildDirectory)\lib\net35" />
-    <Copy SourceFiles="@(Net40OutputFiles)" DestinationFolder="$(BuildDirectory)\lib\net40" />
-    <Copy SourceFiles="@(Net45OutputFiles)" DestinationFolder="$(BuildDirectory)\lib\net45" />
+    <Copy SourceFiles="@(Net35OutputFiles)" DestinationFolder="$(BuildDirectory)\net35" />
+    <Copy SourceFiles="@(Net40OutputFiles)" DestinationFolder="$(BuildDirectory)\net40" />
+    <Copy SourceFiles="@(Net45OutputFiles)" DestinationFolder="$(BuildDirectory)\net45" />
+  </Target>
+
+  <Target Name="CreateNuGetPackage">
+    <RemoveDir Condition=" Exists('$(ReleaseDirectory)') " Directories="$(ReleaseDirectory)" />
+    <MakeDir Directories="$(ReleaseDirectory)" Condition=" !Exists('$(ReleaseDirectory)') " />
+
+    <Exec Command="$(NuGetDirectory)\NuGet.exe pack -OutputDirectory .\release" />
   </Target>
 </Project>

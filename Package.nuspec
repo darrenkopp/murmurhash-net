@@ -14,4 +14,7 @@
     <copyright>Copyright 2013</copyright>
     <tags>murmur murmurhash murmur3 hash</tags>
   </metadata>
+  <files>
+    <file src="build\**\*.dll" target="lib" />
+  </files>
 </package>

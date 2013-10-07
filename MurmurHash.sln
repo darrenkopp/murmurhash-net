@@ -9,6 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MurmurRunner-x64", "Runners
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "misc", "misc", "{793CFB32-44CA-4E4B-9982-5A33350955F0}"
 	ProjectSection(SolutionItems) = preProject
+		default.proj = default.proj
 		README.md = README.md
 	EndProjectSection
 EndProject
@@ -19,6 +20,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{6EF612
 		.nuget\NuGet.Config = .nuget\NuGet.Config
 		.nuget\NuGet.exe = .nuget\NuGet.exe
 		.nuget\NuGet.targets = .nuget\NuGet.targets
+		Package.nuspec = Package.nuspec
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MurmurHash-net4", "MurmurHash-net4\MurmurHash-net4.csproj", "{B051568C-7D57-47CC-8195-B7F8F2C4A916}"
