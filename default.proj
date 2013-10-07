@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="All" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" $(Configuration) == '' ">Release</Configuration>
+    <SourceDirectory>$(MSBuildProjectDirectory)</SourceDirectory>
+    <BuildDirectory>$(MSBuildProjectDirectory)\build</BuildDirectory>
+  </PropertyGroup>
+  <Target Name="All">
+    <CallTarget Targets="Compile" />
+    <CallTarget Targets="CopyOutputToBuildDirectory" />
+    <!-- TODO: make a nupak -->
+  </Target>
+
+  <Target Name="Compile">
+    <MSBuild Projects="MurmurHash.sln" Targets="Build" Properties="Configuration=$(Configuration)" />
+  </Target>
+  <Target Name="CopyOutputToBuildDirectory">
+    <ItemGroup>
+      <Net35OutputFiles Include="$(SourceDirectory)\*-net35\**\$(Configuration)\MurmurHash.dll" />
+      <Net40OutputFiles Include="$(SourceDirectory)\*-net4\**\$(Configuration)\MurmurHash.dll" />
+      <Net45OutputFiles Include="$(SourceDirectory)\MurmurHash\**\$(Configuration)\MurmurHash.dll" />
+    </ItemGroup>
+    <RemoveDir Condition=" Exists('$(BuildDirectory)') " Directories="$(BuildDirectory)" />
+    <MakeDir Directories="$(BuildDirectory)" />
+    <MakeDir Directories="$(BuildDirectory)\lib" />
+    <MakeDir Directories="$(BuildDirectory)\lib\net35" />
+    <MakeDir Directories="$(BuildDirectory)\lib\net40" />
+    <MakeDir Directories="$(BuildDirectory)\lib\net45" />
+
+    <Copy SourceFiles="@(Net35OutputFiles)" DestinationFolder="$(BuildDirectory)\lib\net35" />
+    <Copy SourceFiles="@(Net40OutputFiles)" DestinationFolder="$(BuildDirectory)\lib\net40" />
+    <Copy SourceFiles="@(Net45OutputFiles)" DestinationFolder="$(BuildDirectory)\lib\net45" />
+  </Target>
+</Project>
