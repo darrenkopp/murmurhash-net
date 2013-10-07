@@ -11,6 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "misc", "misc", "{793CFB32-4
 	ProjectSection(SolutionItems) = preProject
 		default.proj = default.proj
 		README.md = README.md
+		release.cmd = release.cmd
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MurmurHash.Specs", "MurmurHash.Specs\MurmurHash.Specs.csproj", "{6F6E48F4-A534-43EB-8222-9F4364CFA755}"
