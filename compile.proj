@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="All" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" $(Configuration) == '' ">Release</Configuration>
+    <SourceDirectory>$(MSBuildProjectDirectory)</SourceDirectory>
+    <BuildDirectory>$(SourceDirectory)\build</BuildDirectory>
+    <ReleaseDirectory>$(SourceDirectory)\release</ReleaseDirectory>
+    <NuGetDirectory>$(SourceDirectory)\.nuget</NuGetDirectory>
+    <SignAssembly Condition=" '$(SignAssembly)' == '' ">false</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(SourceDirectory)\murmurhash-net.snk</AssemblyOriginatorKeyFile>
+    <SourceNuSpecFile></SourceNuSpecFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <NugetPackageVersion>1.0.0</NugetPackageVersion>
+  </PropertyGroup>
+
+  <Target Name="All">
+    <CallTarget Targets="Compile;CopyOutputToBuildDirectory;CreateNuGetPackage" />
+  </Target>
+  
+  <Target Name="Compile">
+    <ItemGroup>
+      <_TargetProjects Include="$(SourceDirectory)\MurmurHash\*.csproj;$(SourceDirectory)\MurmurHash-net4\*.csproj;$(SourceDirectory)\MurmurHash-net35\*.csproj" />
+    </ItemGroup>
+    <Message Text="$(SignAssembly)" />
+    <MSBuild Projects="@(_TargetProjects)" Targets="Clean;Build" Properties="Configuration=$(Configuration);SignAssembly=$(SignAssembly);AssemblyOriginatorKeyFile=$(AssemblyOriginatorKeyFile)" />
+  </Target>
+
+  <Target Name="CopyOutputToBuildDirectory">
+    <ItemGroup>
+      <Net35OutputFiles Include="$(SourceDirectory)\*-net35\**\$(Configuration)\MurmurHash.dll" />
+      <Net40OutputFiles Include="$(SourceDirectory)\*-net4\**\$(Configuration)\MurmurHash.dll" />
+      <Net45OutputFiles Include="$(SourceDirectory)\MurmurHash\**\$(Configuration)\MurmurHash.dll" />
+    </ItemGroup>
+    <RemoveDir Condition=" Exists('$(BuildDirectory)') " Directories="$(BuildDirectory)" />
+    <MakeDir Condition=" !Exists('$(BuildDirectory)') " Directories="$(BuildDirectory)" />
+    <MakeDir Directories="$(BuildDirectory)\net35" />
+    <MakeDir Directories="$(BuildDirectory)\net40" />
+    <MakeDir Directories="$(BuildDirectory)\net45" />
+
+    <Copy SourceFiles="@(Net35OutputFiles)" DestinationFolder="$(BuildDirectory)\net35" />
+    <Copy SourceFiles="@(Net40OutputFiles)" DestinationFolder="$(BuildDirectory)\net40" />
+    <Copy SourceFiles="@(Net45OutputFiles)" DestinationFolder="$(BuildDirectory)\net45" />
+  </Target>
+
+  <Target Name="CreateNuGetPackage">
+    <Error Condition=" '$(SourceNuSpecFile)' == '' " Text=".nuspec file not specified" />
+
+    <Exec Command="$(NuGetDirectory)\NuGet.exe pack $(SourceNuSpecFile) -OutputDirectory .\release -Version $(NugetPackageVersion)" />
+  </Target>
+</Project>

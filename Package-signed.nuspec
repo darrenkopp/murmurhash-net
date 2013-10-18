@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>murmurhash</id>
+    <id>murmurhash-signed</id>
     <version>1.0.0</version>
     <authors>Darren Kopp</authors>
     <owners>Darren Kopp, Ian Campbell</owners>

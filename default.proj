@@ -11,37 +11,19 @@
   <PropertyGroup>
     <NugetPackageVersion>1.0.0</NugetPackageVersion>
   </PropertyGroup>
-  <Target Name="All">
-    <CallTarget Targets="Compile" />
-    <CallTarget Targets="CopyOutputToBuildDirectory" />
-    <CallTarget Targets="CreateNuGetPackage" />
-  </Target>
 
-  <Target Name="Compile">
-    <MSBuild Projects="MurmurHash.sln" Targets="Build" Properties="Configuration=$(Configuration)" />
+  <Target Name="_BuildProjects">
+    <MSBuild Projects="compile.proj" Targets="All" Properties="Configuration=$(Configuration);SignAssembly=false;SourceNuSpecFile=$(SourceDirectory)\Package.nuspec" />
+    <MSBuild Projects="compile.proj" Targets="All" Properties="Configuration=$(Configuration);SignAssembly=true;SourceNuSpecFile=$(SourceDirectory)\Package-signed.nuspec" />
   </Target>
   
-  <Target Name="CopyOutputToBuildDirectory">
-    <ItemGroup>
-      <Net35OutputFiles Include="$(SourceDirectory)\*-net35\**\$(Configuration)\MurmurHash.dll" />
-      <Net40OutputFiles Include="$(SourceDirectory)\*-net4\**\$(Configuration)\MurmurHash.dll" />
-      <Net45OutputFiles Include="$(SourceDirectory)\MurmurHash\**\$(Configuration)\MurmurHash.dll" />
-    </ItemGroup>
-    <RemoveDir Condition=" Exists('$(BuildDirectory)') " Directories="$(BuildDirectory)" />
-    <MakeDir Condition=" !Exists('$(BuildDirectory)') " Directories="$(BuildDirectory)" />
-    <MakeDir Directories="$(BuildDirectory)\net35" />
-    <MakeDir Directories="$(BuildDirectory)\net40" />
-    <MakeDir Directories="$(BuildDirectory)\net45" />
-
-    <Copy SourceFiles="@(Net35OutputFiles)" DestinationFolder="$(BuildDirectory)\net35" />
-    <Copy SourceFiles="@(Net40OutputFiles)" DestinationFolder="$(BuildDirectory)\net40" />
-    <Copy SourceFiles="@(Net45OutputFiles)" DestinationFolder="$(BuildDirectory)\net45" />
-  </Target>
-
-  <Target Name="CreateNuGetPackage">
+  <Target Name="_Initialize">
     <RemoveDir Condition=" Exists('$(ReleaseDirectory)') " Directories="$(ReleaseDirectory)" />
     <MakeDir Directories="$(ReleaseDirectory)" Condition=" !Exists('$(ReleaseDirectory)') " />
-
-    <Exec Command="$(NuGetDirectory)\NuGet.exe pack -OutputDirectory .\release -Version $(NugetPackageVersion)" />
+  </Target>
+  
+  <Target Name="All">
+    <CallTarget Targets="_Initialize" />
+    <CallTarget Targets="_BuildProjects" />
   </Target>
 </Project>
