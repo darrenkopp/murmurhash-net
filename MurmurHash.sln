@@ -9,6 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MurmurRunner-x64", "Runners
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "misc", "misc", "{793CFB32-44CA-4E4B-9982-5A33350955F0}"
 	ProjectSection(SolutionItems) = preProject
+		compile.proj = compile.proj
 		default.proj = default.proj
 		README.md = README.md
 		release.cmd = release.cmd
@@ -21,6 +22,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{6EF612
 		.nuget\NuGet.Config = .nuget\NuGet.Config
 		.nuget\NuGet.exe = .nuget\NuGet.exe
 		.nuget\NuGet.targets = .nuget\NuGet.targets
+		Package-signed.nuspec = Package-signed.nuspec
 		Package.nuspec = Package.nuspec
 	EndProjectSection
 EndProject
