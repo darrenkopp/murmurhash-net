@@ -6,6 +6,8 @@ For each algorithm, there is a managed and unmanaged (rather, unsafe) variant th
 
 There currently is not a way to force the selection of a 128-bit algorithm right now, but it automatically detects the process type and returns the optimized algorithm.
 
+You can [grab the the binaries off of nuget](https://www.nuget.org/packages/murmurhash/) and there is also a [signed package](https://www.nuget.org/packages/murmurhash-signed/) if that's your thing.
+
 ##Example
 	byte[] data = Guid.NewGuid().ToByteArray();
 	HashAlgorithm murmur128 = MurmurHash.Create128(managed: false); // returns a 128-bit algorithm using "unsafe" code with default seed
