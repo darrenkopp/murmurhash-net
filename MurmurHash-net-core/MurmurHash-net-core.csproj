@@ -9,4 +9,23 @@
     <Version>1.0.0</Version>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Include="..\MurmurHash\Extensions.cs" Link="Extensions.cs" />
+    <Compile Include="..\MurmurHash\GlobalSuppressions.cs" Link="GlobalSuppressions.cs" />
+    <Compile Include="..\MurmurHash\Managed\Murmur128ManagedX64.cs" Link="Managed\Murmur128ManagedX64.cs" />
+    <Compile Include="..\MurmurHash\Managed\Murmur128ManagedX86.cs" Link="Managed\Murmur128ManagedX86.cs" />
+    <Compile Include="..\MurmurHash\Managed\Murmur32ManagedX86.cs" Link="Managed\Murmur32ManagedX86.cs" />
+    <Compile Include="..\MurmurHash\Murmur128.cs" Link="Murmur128.cs" />
+    <Compile Include="..\MurmurHash\Murmur32.cs" Link="Murmur32.cs" />
+    <Compile Include="..\MurmurHash\MurmurHash.cs" Link="MurmurHash.cs" />
+    <Compile Include="..\MurmurHash\Unmanaged\Murmur128UnmanagedX64.cs" Link="Unmanaged\Murmur128UnmanagedX64.cs" />
+    <Compile Include="..\MurmurHash\Unmanaged\Murmur128UnmanagedX86.cs" Link="Unmanaged\Murmur128UnmanagedX86.cs" />
+    <Compile Include="..\MurmurHash\Unmanaged\Murmur32UnmanagedX86.cs" Link="Unmanaged\Murmur32UnmanagedX86.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Managed\" />
+    <Folder Include="Unmanaged\" />
+  </ItemGroup>
+
 </Project>
