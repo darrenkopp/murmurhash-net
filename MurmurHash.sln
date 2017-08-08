@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.16
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MurmurHash", "MurmurHash\MurmurHash.csproj", "{5E240B61-4CCD-4C2A-A0F2-F545C5E9939C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MurmurRunner-x86", "Runners\MurmurRunner-x86\MurmurRunner-x86.csproj", "{C0320E2F-CE1D-45BA-8D2D-219F9F5014AE}"
@@ -11,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "misc", "misc", "{793CFB32-4
 	ProjectSection(SolutionItems) = preProject
 		compile.proj = compile.proj
 		default.proj = default.proj
+		publish.cmd = publish.cmd
+		publish.ps1 = publish.ps1
 		README.md = README.md
 		release.cmd = release.cmd
 	EndProjectSection

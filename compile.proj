@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <NugetPackageVersion>1.0.0</NugetPackageVersion>
+    <NugetPackageVersion>1.0.1</NugetPackageVersion>
   </PropertyGroup>
 
   <Target Name="All">
@@ -21,7 +21,7 @@
   
   <Target Name="Compile">
     <ItemGroup>
-      <_TargetProjects Include="$(SourceDirectory)\MurmurHash\*.csproj;$(SourceDirectory)\MurmurHash-net4\*.csproj;$(SourceDirectory)\MurmurHash-net35\*.csproj" />
+      <_TargetProjects Include="$(SourceDirectory)\MurmurHash\*.csproj;$(SourceDirectory)\MurmurHash-net4\*.csproj;$(SourceDirectory)\MurmurHash-net35\*.csproj;$(SourceDirectory)\MurmurHash-net-core\*.csproj" />
     </ItemGroup>
     <Message Text="$(SignAssembly)" />
     <MSBuild Projects="@(_TargetProjects)" Targets="Clean;Build" Properties="Configuration=$(Configuration);SignAssembly=$(SignAssembly);AssemblyOriginatorKeyFile=$(AssemblyOriginatorKeyFile)" />
@@ -32,16 +32,19 @@
       <Net35OutputFiles Include="$(SourceDirectory)\*-net35\**\$(Configuration)\MurmurHash.dll" />
       <Net40OutputFiles Include="$(SourceDirectory)\*-net4\**\$(Configuration)\MurmurHash.dll" />
       <Net45OutputFiles Include="$(SourceDirectory)\MurmurHash\**\$(Configuration)\MurmurHash.dll" />
+      <NetCoreOutputFiles Include="$(SourceDirectory)\*-net-core\**\$(Configuration)\netstandard1.4\MurmurHash.dll" />
     </ItemGroup>
     <RemoveDir Condition=" Exists('$(BuildDirectory)') " Directories="$(BuildDirectory)" />
     <MakeDir Condition=" !Exists('$(BuildDirectory)') " Directories="$(BuildDirectory)" />
     <MakeDir Directories="$(BuildDirectory)\net35" />
     <MakeDir Directories="$(BuildDirectory)\net40" />
     <MakeDir Directories="$(BuildDirectory)\net45" />
+    <MakeDir Directories="$(BuildDirectory)\netstandard1.4" />
 
     <Copy SourceFiles="@(Net35OutputFiles)" DestinationFolder="$(BuildDirectory)\net35" />
     <Copy SourceFiles="@(Net40OutputFiles)" DestinationFolder="$(BuildDirectory)\net40" />
     <Copy SourceFiles="@(Net45OutputFiles)" DestinationFolder="$(BuildDirectory)\net45" />
+    <Copy SourceFiles="@(NetCoreOutputFiles)" DestinationFolder="$(BuildDirectory)\netstandard1.4" />
   </Target>
 
   <Target Name="CreateNuGetPackage">

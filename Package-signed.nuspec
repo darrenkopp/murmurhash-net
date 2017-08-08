@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>murmurhash-signed</id>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <authors>Darren Kopp</authors>
     <owners>Darren Kopp, Ian Campbell</owners>
     <licenseUrl>https://github.com/darrenkopp/murmurhash-net/blob/master/LICENSE.md</licenseUrl>

@@ -1,15 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="All" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+<Project DefaultTargets="All" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" $(Configuration) == '' ">Release</Configuration>
     <SourceDirectory>$(MSBuildProjectDirectory)</SourceDirectory>
     <BuildDirectory>$(SourceDirectory)\build</BuildDirectory>
     <ReleaseDirectory>$(SourceDirectory)\release</ReleaseDirectory>
     <NuGetDirectory>$(SourceDirectory)\.nuget</NuGetDirectory>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <NugetPackageVersion>1.0.0</NugetPackageVersion>
   </PropertyGroup>
 
   <Target Name="_BuildProjects">
