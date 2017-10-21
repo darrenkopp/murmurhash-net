@@ -24,6 +24,12 @@ namespace Murmur
         X86
     }
 
+    public enum AlgorithmType
+    {
+        Murmur32,
+        Murmur128
+    }
+
     public static class MurmurHash
     {
         public static Murmur32 Create32(uint seed = 0, bool managed = true)

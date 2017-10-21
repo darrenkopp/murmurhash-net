@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -25,9 +26,31 @@ namespace Murmur.Specs
 
             using (var algorithm = algorithmFactory(0))
                 return BitConverter.ToUInt32(algorithm.ComputeHash(hashes), 0);
+        }
 
-            //uint verification = (uint)((final[0] << 0) | (final[1] << 8) | (final[2] << 8) | (final[3] << 24));
-            //return verification;
+        public static uint ComputeVerificationHashOutputStream(int bits, Func<Stream, uint, MurmurOutputStream> streamFactory)
+        {
+            int bytes = bits / 8;
+
+            byte[] key = new byte[256];
+            byte[] hashes = new byte[bytes * 256];
+
+            for (int i = 0; i < 256; i++)
+            {
+                key[i] = (byte)i;
+                using (var algorithm = streamFactory(Stream.Null, (uint)(256 - i)))
+                {
+                    algorithm.Write(key, 0, i);
+
+                    Array.Copy(algorithm.Hash, 0, hashes, i * bytes, bytes);
+                }
+            }
+
+            using (var algorithm = streamFactory(Stream.Null, 0))
+            {
+                algorithm.Write(hashes, 0, hashes.Length);
+                return BitConverter.ToUInt32(algorithm.Hash, 0);
+            }
         }
     }
 }

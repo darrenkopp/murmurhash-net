@@ -18,6 +18,17 @@ namespace Murmur.Specs
         }
 
         [Subject("Murmur32")]
+        class given_a_managed_algorithm_output_stream
+        {
+            protected static readonly HashExpection Expectation = new HashExpection(32, 0xB0F57EE3);
+            protected static uint VerificationHash;
+
+            Establish context = () => VerificationHash = 0;
+            Because of = () => VerificationHash = HashVerifier.ComputeVerificationHashOutputStream(Expectation.Bits, (stream, seed) => new MurmurOutputStream(stream, seed, true, AlgorithmType.Murmur32));
+            It should_have_created_a_valid_hash = () => VerificationHash.ShouldEqual(Expectation.Result);
+        }
+
+        [Subject("Murmur32")]
         class given_an_unmanaged_algorithm
         {
             protected static readonly HashExpection Expectation = new HashExpection(32, 0xB0F57EE3);
@@ -25,6 +36,17 @@ namespace Murmur.Specs
 
             Establish context = () => VerificationHash = 0;
             Because of = () => VerificationHash = HashVerifier.ComputeVerificationHash(Expectation.Bits, seed => MurmurHash.Create32(seed, managed: false));
+            It should_have_created_a_valid_hash = () => VerificationHash.ShouldEqual(Expectation.Result);
+        }
+
+        [Subject("Murmur32")]
+        class given_an_unmanaged_algorithm_output_stream
+        {
+            protected static readonly HashExpection Expectation = new HashExpection(32, 0xB0F57EE3);
+            protected static uint VerificationHash;
+
+            Establish context = () => VerificationHash = 0;
+            Because of = () => VerificationHash = HashVerifier.ComputeVerificationHashOutputStream(Expectation.Bits, (stream, seed) => new MurmurOutputStream(stream, seed, false, AlgorithmType.Murmur32));
             It should_have_created_a_valid_hash = () => VerificationHash.ShouldEqual(Expectation.Result);
         }
 
