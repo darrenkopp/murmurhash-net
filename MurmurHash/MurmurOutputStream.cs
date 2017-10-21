@@ -9,6 +9,8 @@ namespace Murmur
     /// </summary>
     public class MurmurOutputStream : Stream
     {
+        static readonly byte[] DEFAULT_FINAL_TRANFORM = new byte[0];
+
         readonly Stream UnderlyingStream;
         readonly HashAlgorithm Algorithm;
         public MurmurOutputStream(Stream underlyingStream, uint seed = 0, bool managed = true, AlgorithmType type = AlgorithmType.Murmur128, AlgorithmPreference preference = AlgorithmPreference.Auto)
@@ -19,7 +21,7 @@ namespace Murmur
                 : (HashAlgorithm)MurmurHash.Create128(seed, managed, preference);
         }
 
-        public byte[] Hash { get { Algorithm.TransformFinalBlock(new byte[0], 0, 0); return Algorithm.Hash; } }
+        public byte[] Hash { get { Algorithm.TransformFinalBlock(DEFAULT_FINAL_TRANFORM, 0, 0); return Algorithm.Hash; } }
         public override bool CanRead { get { return false; } }
         public override bool CanSeek { get { return false; } }
         public override bool CanWrite { get { return true; } }
