@@ -10,7 +10,7 @@
     <!--<iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>-->
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Provides a HashAlgorithm implementation of the Murmur3 algorithm</description>
-    <releaseNotes>1.0.2 - Added new MurmurOutputStream type to allow streaming computation.</releaseNotes>
+    <releaseNotes>1.0.2 - Added new MurmurOutputStream and MurmurInputStream types to allow streaming computation.</releaseNotes>
     <copyright>Copyright 2013</copyright>
     <tags>murmur murmurhash murmur3 hash</tags>
   </metadata>
