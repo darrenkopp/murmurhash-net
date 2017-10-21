@@ -50,6 +50,7 @@
     <Compile Include="Murmur128.cs" />
     <Compile Include="Murmur32.cs" />
     <Compile Include="MurmurHash.cs" />
+    <Compile Include="MurmurInputStream.cs" />
     <Compile Include="MurmurOutputStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Managed\Murmur128ManagedX86.cs" />
