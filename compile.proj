@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <NugetPackageVersion>1.0.1</NugetPackageVersion>
+    <NugetPackageVersion>1.0.2</NugetPackageVersion>
   </PropertyGroup>
 
   <Target Name="All">
