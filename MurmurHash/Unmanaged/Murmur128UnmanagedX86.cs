@@ -58,6 +58,9 @@ namespace Murmur
 #endif
         private void Body(byte[] data, int start, int length)
         {
+            if (length == 0)
+                return;
+
             int remainder = length & 15;
             int blocks = length / 16;
 

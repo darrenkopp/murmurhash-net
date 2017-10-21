@@ -19,7 +19,7 @@ namespace Murmur
                 : (HashAlgorithm)MurmurHash.Create128(seed, managed, preference);
         }
 
-        public byte[] Hash { get { return Algorithm.Hash; } }
+        public byte[] Hash { get { Algorithm.TransformFinalBlock(new byte[0], 0, 0); return Algorithm.Hash; } }
         public override bool CanRead { get { return false; } }
         public override bool CanSeek { get { return false; } }
         public override bool CanWrite { get { return true; } }
@@ -48,7 +48,7 @@ namespace Murmur
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            Algorithm.ComputeHash(buffer, offset, count);
+            Algorithm.TransformBlock(buffer, offset, count, null, 0);
             UnderlyingStream.Write(buffer, offset, count);
         }
 
