@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 
 namespace Murmur
 {
+#if !NET35 && !NETSTANDARD1_4
     public class MurmurInputStream : Stream
     {
         static readonly byte[] DEFAULT_FINAL_TRANFORM = new byte[0];
@@ -61,4 +62,5 @@ namespace Murmur
             base.Dispose(disposing);
         }
     }
+#endif
 }
