@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 
 namespace Murmur
 {
+#if !NET35 && !NETSTANDARD1_4
     /// <summary>
     /// Exposes the murmur algorithm as a pass through stream that computes the hash incrementally.
     /// </summary>
@@ -62,4 +63,5 @@ namespace Murmur
             base.Dispose(disposing);
         }
     }
+#endif
 }
