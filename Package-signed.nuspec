@@ -5,7 +5,7 @@
     <version>1.0.2</version>
     <authors>Darren Kopp</authors>
     <owners>Darren Kopp, Ian Campbell</owners>
-    <licenseUrl>https://github.com/darrenkopp/murmurhash-net/blob/master/LICENSE.md</licenseUrl>
+	  <license type="expression">Apache-2.0</license>
     <projectUrl>https://github.com/darrenkopp/murmurhash-net</projectUrl>
     <!--<iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>-->
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
